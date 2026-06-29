@@ -85,6 +85,11 @@ Ce projet n est pas un site vitrine: la base est construite comme un moteur de s
 - Lint: npm run lint
 - Preview: npm run preview
 
+## Copilot guidance
+
+- Prompt kit: docs/COPILOT_SIMULATOR_PROMPTS.md
+- Workflow: docs/COPILOT_WORKFLOW.md
+
 ## Etat actuel et extensions prevues
 
 La base est prete pour evoluer vers:

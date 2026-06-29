@@ -124,6 +124,37 @@ export interface ElectricalSnapshot {
   railPowered: boolean
 }
 
+export interface GraphPortRuntime {
+  id: string
+  kind: 'in' | 'out'
+  signal: number
+}
+
+export interface GraphNodeRuntime {
+  id: string
+  componentId: string
+  type: ComponentKind
+  label: string
+  inputPorts: GraphPortRuntime[]
+  outputPorts: GraphPortRuntime[]
+  state: RuntimeComponentState
+  physicalProperties: Record<string, number>
+}
+
+export interface GraphConnectionRuntime {
+  id: string
+  fromNodeId: string
+  fromPortId: string
+  toNodeId: string
+  toPortId: string
+}
+
+export interface GraphSnapshot {
+  nodes: GraphNodeRuntime[]
+  connections: GraphConnectionRuntime[]
+  traversal: string[]
+}
+
 export interface RegulatorRuntime {
   setpoint: number
   fanForcedOff: boolean
@@ -136,10 +167,16 @@ export interface LiveThermoValues {
   boxTemp: number
   tCond: number
   tEvap: number
+  tSuction: number
+  tDischarge: number
   superheat: number
   subcool: number
   compressorCurrent: number
   flowRatio: number
+  airFlowM3h: number
+  condenserApproach: number
+  condenserDeltaT: number
+  evapDeltaT: number
   electricalPower: boolean
 }
 
@@ -154,6 +191,7 @@ export interface InstallationRuntime {
   installationId: string
   timeSeconds: number
   components: Record<string, RuntimeComponentState>
+  graph: GraphSnapshot
   activeFaultIds: string[]
   alarms: string[]
   regulator: RegulatorRuntime

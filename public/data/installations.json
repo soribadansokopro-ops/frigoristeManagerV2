@@ -20,6 +20,11 @@
       { "id": "cd1", "name": "Condenseur", "kind": "condenser", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
       { "id": "ev1", "name": "Evaporateur", "kind": "evaporator", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
       { "id": "dt1", "name": "Detendeur", "kind": "expansionValve", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "sv1", "name": "Electrovanne liquide", "kind": "solenoidValve", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "fd1", "name": "Filtre deshydrateur", "kind": "filterDrier", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "rc1", "name": "Reservoir liquide", "kind": "receiver", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "sn1", "name": "Sonde retour air", "kind": "sensor", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "rl1", "name": "Relais ventilateurs", "kind": "relay", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
       { "id": "fv1", "name": "Ventilateurs", "kind": "fan", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
       { "id": "rg1", "name": "Regulateur", "kind": "regulator", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
       { "id": "ct1", "name": "Contacteur", "kind": "contactor", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
@@ -57,6 +62,70 @@
           "alarms": ["ALARME SONDE AIR"]
         },
         "repairAction": "Remplacer sonde air"
+      },
+      {
+        "id": "f1-evaporateur-givre",
+        "name": "Evaporateur givree",
+        "description": "Le debit air chute, traces de givre visibles sur batterie.",
+        "severity": "warning",
+        "effects": {
+          "pressureShift": { "hp": -0.6, "bp": -0.5 },
+          "temperatureShift": 2.4,
+          "currentMultiplier": -0.08,
+          "forceStopComponentIds": ["fv1"],
+          "powerCutComponentIds": [],
+          "leakComponentIds": ["ev1"],
+          "alarms": ["GIVRAGE EVAPORATEUR", "DEBIT AIR INSUFFISANT"]
+        },
+        "repairAction": "Lancer degivrage puis controler ventilation"
+      },
+      {
+        "id": "f1-condenseur-encrasse",
+        "name": "Condenseur encrasse",
+        "description": "Echange thermique degrade, temperature de refoulement elevee.",
+        "severity": "warning",
+        "effects": {
+          "pressureShift": { "hp": 2.2, "bp": 0.1 },
+          "temperatureShift": 1.2,
+          "currentMultiplier": 0.22,
+          "forceStopComponentIds": [],
+          "powerCutComponentIds": [],
+          "leakComponentIds": [],
+          "alarms": ["HP ELEVEE", "CONDENSEUR ENCRASSE"]
+        },
+        "repairAction": "Nettoyer batterie condenseur et verifier ventilation"
+      },
+      {
+        "id": "f1-electrovanne-bloquee",
+        "name": "Electrovanne liquide bloquee",
+        "description": "L alimentation liquide vers l evaporateur est intermittente.",
+        "severity": "critical",
+        "effects": {
+          "pressureShift": { "hp": 0.8, "bp": -0.7 },
+          "temperatureShift": 2.8,
+          "currentMultiplier": 0.05,
+          "forceStopComponentIds": ["ev1"],
+          "powerCutComponentIds": ["sv1"],
+          "leakComponentIds": [],
+          "alarms": ["ELECTROVANNE LIQUIDE EN DEFAUT"]
+        },
+        "repairAction": "Remplacer bobine ou electrovanne"
+      },
+      {
+        "id": "f1-filtre-colmate",
+        "name": "Filtre deshydrateur colmate",
+        "description": "Perte de charge ligne liquide avec sous-alimentation evaporateur.",
+        "severity": "warning",
+        "effects": {
+          "pressureShift": { "hp": 0.4, "bp": -0.6 },
+          "temperatureShift": 2,
+          "currentMultiplier": -0.05,
+          "forceStopComponentIds": [],
+          "powerCutComponentIds": [],
+          "leakComponentIds": [],
+          "alarms": ["CHUTE DE PRESSION LIGNE LIQUIDE"]
+        },
+        "repairAction": "Remplacer filtre deshydrateur"
       }
     ]
   },

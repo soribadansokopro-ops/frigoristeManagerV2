@@ -1,0 +1,105 @@
+:root {
+  --fm-bg-main: #111827;
+  --fm-bg-panel: #1f2937;
+  --fm-bg-card: #273549;
+  --fm-accent: #3b82f6;
+  --fm-ok: #22c55e;
+  --fm-warn: #f59e0b;
+  --fm-fault: #ef4444;
+  --fm-text-main: #f8fafc;
+  --fm-text-soft: #94a3b8;
+  --fm-line: #334155;
+}
+
+.ds-card {
+  border: 1px solid var(--fm-line);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(39, 53, 73, 0.95), rgba(27, 38, 52, 0.95));
+  padding: 12px;
+}
+
+.ds-card-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.ds-card-header p {
+  margin: 4px 0 0;
+  color: var(--fm-text-soft);
+}
+
+.ds-button {
+  border: 1px solid color-mix(in srgb, var(--fm-accent), white 15%);
+  border-radius: 8px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--fm-accent), #101827 38%), #1d4ed8);
+  color: var(--fm-text-main);
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ds-button.is-ghost {
+  background: transparent;
+  border-color: var(--fm-line);
+  color: var(--fm-text-soft);
+}
+
+.ds-button.is-danger {
+  background: linear-gradient(180deg, #b91c1c, #7f1d1d);
+  border-color: #ef4444;
+}
+
+.ds-panel {
+  border: 1px solid var(--fm-line);
+  border-radius: 10px;
+  background: rgba(31, 41, 55, 0.9);
+  padding: 8px 10px;
+  display: grid;
+  gap: 2px;
+}
+
+.ds-panel small {
+  color: var(--fm-text-soft);
+}
+
+.ds-panel strong {
+  color: var(--fm-text-main);
+}
+
+.ds-panel.is-ok {
+  border-color: color-mix(in srgb, var(--fm-ok), white 20%);
+}
+
+.ds-panel.is-warn {
+  border-color: color-mix(in srgb, var(--fm-warn), white 12%);
+}
+
+.ds-panel.is-fault {
+  border-color: color-mix(in srgb, var(--fm-fault), white 12%);
+}
+
+.ds-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--fm-line);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  color: var(--fm-text-soft);
+  background: rgba(17, 24, 39, 0.7);
+}
+
+.ds-badge.is-ok {
+  color: #86efac;
+  border-color: #22c55e;
+}
+
+.ds-badge.is-warn {
+  color: #fcd34d;
+  border-color: #f59e0b;
+}
+
+.ds-badge.is-fault {
+  color: #fca5a5;
+  border-color: #ef4444;
+}

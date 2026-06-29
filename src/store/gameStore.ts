@@ -43,6 +43,7 @@ interface GameStore {
   setElectricalProbe: (probe: 'A' | 'B', pointId: string) => void
   triggerElectricalMeasurement: () => void
   activateFault: (faultId: string) => void
+  setActiveFaults: (faultIds: string[]) => void
   repairFault: (faultId: string) => void
   setSelectedTool: (tool: ToolType) => void
   measureWithTool: () => void
@@ -274,6 +275,26 @@ export const useGameStore = create<GameStore>()(
             activeFaultIds: [...state.runtime.activeFaultIds, faultId],
           },
           missionStep: 'LOCALISATION_PANNE',
+        })
+      },
+
+      setActiveFaults: (faultIds) => {
+        const state = get()
+        const definition = getCurrentDefinition(state)
+        if (!definition) {
+          return
+        }
+
+        const validFaultIds = faultIds.filter((faultId) =>
+          definition.faults.some((fault) => fault.id === faultId),
+        )
+
+        const runtime = createRuntime(definition)
+        runtime.activeFaultIds = [...validFaultIds]
+
+        set({
+          runtime,
+          missionStep: validFaultIds.length > 0 ? 'LOCALISATION_PANNE' : 'ARRIVEE_SITE',
         })
       },
 

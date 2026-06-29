@@ -1,8 +1,10 @@
 import type {
-  RefrigerantState,
-  RefrigerationComponent,
   SystemContext,
+  RefrigerantState,
 } from '../models/ComponentTypes'
+import type { ConnectionGraph } from '../graph/ConnectionGraph'
+import { GraphSolver } from '../graph/GraphSolver'
+import type { RuntimeComponentState } from '../types/game'
 
 export interface RefrigerationTickResult {
   loopState: RefrigerantState
@@ -14,18 +16,27 @@ export interface RefrigerationTickResult {
  * It keeps a simplified coherent model suited for troubleshooting gameplay.
  */
 export class RefrigerationEngine {
-  private readonly components: RefrigerationComponent[]
+  private readonly graph: ConnectionGraph<RefrigerantState, SystemContext>
+
+  private readonly solver: GraphSolver<RefrigerantState, SystemContext>
+
+  private readonly seedNodeId: string | undefined
+
+  private lastTraversal: string[] = []
 
   private loopState: RefrigerantState
 
   private roomTemperature: number
 
   public constructor(
-    components: RefrigerationComponent[],
+    graph: ConnectionGraph<RefrigerantState, SystemContext>,
     loopState: RefrigerantState,
     initialRoomTemperature: number,
+    seedNodeId?: string,
   ) {
-    this.components = components
+    this.graph = graph
+    this.solver = new GraphSolver(graph)
+    this.seedNodeId = seedNodeId
     this.loopState = loopState
     this.roomTemperature = initialRoomTemperature
   }
@@ -34,15 +45,33 @@ export class RefrigerationEngine {
     return {
       loopState: this.loopState,
       roomTemperature: this.roomTemperature,
+      traversal: this.lastTraversal,
+    }
+  }
+
+  public getGraph() {
+    return this.graph
+  }
+
+  public syncComponentStates(states: Record<string, RuntimeComponentState>) {
+    for (const node of this.graph.getNodes()) {
+      const nextState = states[node.id]
+      if (!nextState) {
+        continue
+      }
+
+      node.state.powered = nextState.powered
+      node.state.running = nextState.running
+      node.state.leaking = nextState.leaking
+      node.state.open = nextState.open
+      node.state.health = nextState.health
     }
   }
 
   public tick(context: SystemContext): RefrigerationTickResult {
-    let stream = this.loopState
-
-    for (const component of this.components) {
-      stream = component.update(stream, context)
-    }
+    const solved = this.solver.solve(this.loopState, context, this.seedNodeId)
+    const stream = solved.flow
+    this.lastTraversal = solved.traversal
 
     const coolingEffect = Math.max(0, stream.massFlow) * 0.65
     const loadEffect = context.roomLoad * 0.4

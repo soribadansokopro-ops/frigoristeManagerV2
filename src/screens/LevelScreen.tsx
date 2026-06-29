@@ -1,17 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getLevelBackground, getLevelThumbnail } from '../config/visuals'
 import { useSimulationTick } from '../hooks/useSimulationTick'
-import { ElectricalDiagram } from '../ui/Diagram/Electrical/ElectricalDiagram'
-import { RefrigerationDiagram } from '../ui/Diagram/RefrigerationDiagram'
-import { AlarmPanel } from '../ui/Panels/AlarmPanel'
-import { PropertiesPanel } from '../ui/Panels/PropertiesPanel'
-import { RegulatorPanel } from '../ui/Panels/RegulatorPanel'
 import { Toolbox } from '../ui/Tools/Toolbox'
-import { ElectricalSchematic } from '../ui/ElectricalSchematic'
 import { GameViewport } from '../ui/GameViewport'
-import { RefrigerationSchematic } from '../ui/RefrigerationSchematic'
 import { ToolPanel } from '../ui/ToolPanel'
+import { MissionGuidePanel } from '../ui/Panels/MissionGuidePanel'
+import { ProcessPanel } from '../ui/Panels/ProcessPanel'
 import { useGameStore } from '../store/gameStore'
 
 const missionLabels = {
@@ -108,9 +103,12 @@ const previousJourneyStep = (step: MissionJourneyStep): MissionJourneyStep => {
 
 export function LevelScreen() {
   const { levelId } = useParams()
+  const [searchParams] = useSearchParams()
   const level = Number(levelId)
   const navigate = useNavigate()
   const [journeyStep, setJourneyStep] = useState<MissionJourneyStep>('INTRO')
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  const appliedFaultPresetRef = useRef<string | null>(null)
   const showHotspotDebug = import.meta.env.DEV
 
   const installations = useGameStore((state) => state.installations)
@@ -124,6 +122,7 @@ export function LevelScreen() {
   const movePlayer = useGameStore((state) => state.movePlayer)
   const setSelectedTool = useGameStore((state) => state.setSelectedTool)
   const validateMission = useGameStore((state) => state.validateMission)
+  const setActiveFaults = useGameStore((state) => state.setActiveFaults)
 
   useEffect(() => {
     if (!isLoaded) {
@@ -180,6 +179,33 @@ export function LevelScreen() {
     }
   }, [definitionId, installations.length, isLoaded, journeyStep, level, runtime, startLevel])
 
+  const selectedFaultIds = useMemo(() => {
+    const raw = searchParams.get('faults')
+    if (!raw || !definition) {
+      return [] as string[]
+    }
+
+    const valid = new Set(definition.faults.map((fault) => fault.id))
+    return raw
+      .split(',')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0 && valid.has(item))
+  }, [definition, searchParams])
+
+  useEffect(() => {
+    if (!runtime || !definition) {
+      return
+    }
+
+    const presetKey = `${definition.id}:${selectedFaultIds.join('|')}`
+    if (appliedFaultPresetRef.current === presetKey) {
+      return
+    }
+
+    setActiveFaults(selectedFaultIds)
+    appliedFaultPresetRef.current = presetKey
+  }, [definition, runtime, selectedFaultIds, setActiveFaults])
+
   if (!definition) {
     return (
       <main className="loading-shell">
@@ -226,7 +252,7 @@ export function LevelScreen() {
                 onClick={() => {
                   if (journeyStep === 'DISPLAY_CASE') {
                     setJourneyStep('WORKSHOP')
-                    openZone('schema-frigo')
+                    openZone('meuble')
                     return
                   }
 
@@ -237,7 +263,7 @@ export function LevelScreen() {
                     event.preventDefault()
                     if (journeyStep === 'DISPLAY_CASE') {
                       setJourneyStep('WORKSHOP')
-                      openZone('schema-frigo')
+                      openZone('meuble')
                       return
                     }
 
@@ -287,7 +313,7 @@ export function LevelScreen() {
   }
 
   return (
-    <main className="game-shell">
+    <main className="game-shell software-level-shell">
       <aside className="game-sidebar">
         <div className="brand-block">
           <h1>FRIGORISTE MANAGER</h1>
@@ -305,25 +331,29 @@ export function LevelScreen() {
           <figcaption>{definition.model}</figcaption>
         </figure>
 
-        <div className="movement-card">
-          <h3>Deplacement technicien</h3>
-          <div className="movement-grid">
-            <button type="button" onClick={() => movePlayer(0, -18)}>
-              Haut
-            </button>
-            <button type="button" onClick={() => movePlayer(-18, 0)}>
-              Gauche
-            </button>
-            <button type="button" onClick={() => movePlayer(18, 0)}>
-              Droite
-            </button>
-            <button type="button" onClick={() => movePlayer(0, 18)}>
-              Bas
-            </button>
-          </div>
-        </div>
+        {showAdvanced && (
+          <>
+            <div className="movement-card">
+              <h3>Deplacement technicien</h3>
+              <div className="movement-grid">
+                <button type="button" onClick={() => movePlayer(0, -18)}>
+                  Haut
+                </button>
+                <button type="button" onClick={() => movePlayer(-18, 0)}>
+                  Gauche
+                </button>
+                <button type="button" onClick={() => movePlayer(18, 0)}>
+                  Droite
+                </button>
+                <button type="button" onClick={() => movePlayer(0, 18)}>
+                  Bas
+                </button>
+              </div>
+            </div>
 
-        <ToolPanel installation={definition} selectedTool={selectedTool} runtime={runtime} />
+            <ToolPanel installation={definition} selectedTool={selectedTool} runtime={runtime} />
+          </>
+        )}
 
         <div className="footer-actions">
           <button type="button" onClick={validateMission}>
@@ -364,7 +394,13 @@ export function LevelScreen() {
           </article>
         </header>
 
-        <Toolbox selectedTool={selectedTool} onSelect={setSelectedTool} />
+        <div className="zone-nav-buttons">
+          <button type="button" onClick={() => setShowAdvanced((current) => !current)}>
+            {showAdvanced ? 'Mode essentiel' : 'Afficher details'}
+          </button>
+        </div>
+
+        {showAdvanced && <Toolbox selectedTool={selectedTool} onSelect={setSelectedTool} />}
 
         <GameViewport
           installation={definition}
@@ -373,40 +409,10 @@ export function LevelScreen() {
           onOpenMeuble={() => openZone('meuble')}
         />
 
-        <div className="schema-grid">
-          <article className="schema-card zone-click-card" onClick={() => openZone('schema-frigo')}>
-            <header>
-              <h3>RefrigerationDiagram</h3>
-              <p>SVG groupe loge interactif</p>
-            </header>
-            <RefrigerationDiagram installation={definition} runtime={runtime} />
-            <button type="button" className="zone-outline-trigger" onClick={() => openZone('schema-frigo')}>
-              Ouvrir page schema frigo
-            </button>
-          </article>
-
-          <article className="schema-card zone-click-card" onClick={() => openZone('schema-elec')}>
-            <header>
-              <h3>ElectricalDiagram</h3>
-              <p>SVG electrique interactif</p>
-            </header>
-            <ElectricalDiagram runtime={runtime} />
-            <button type="button" className="zone-outline-trigger" onClick={() => openZone('schema-elec')}>
-              Ouvrir page schema elec
-            </button>
-          </article>
-
-          <RefrigerationSchematic installation={definition} runtime={runtime} />
-          <ElectricalSchematic installation={definition} runtime={runtime} />
-          <div className="zone-click-card" onClick={() => openZone('regulateur')}>
-            <RegulatorPanel installation={definition} runtime={runtime} />
-            <button type="button" className="zone-outline-trigger" onClick={() => openZone('regulateur')}>
-              Ouvrir page regulateur
-            </button>
-          </div>
-          <PropertiesPanel runtime={runtime} />
-          <AlarmPanel runtime={runtime} />
-        </div>
+        <section className="zone-content-grid">
+          <MissionGuidePanel installation={definition} runtime={runtime} />
+          {showAdvanced && <ProcessPanel runtime={runtime} />}
+        </section>
       </section>
     </main>
   )

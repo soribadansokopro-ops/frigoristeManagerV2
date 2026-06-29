@@ -13,9 +13,21 @@ export function ElectricalSchematic({ installation, runtime }: ElectricalSchemat
   const energizedCount = Object.values(runtime.electrical.nodes).filter((node) => node.energized).length
   const activePaths = runtime.electrical.activeEdges.length
   const compressor = installation.components.find((component) => component.kind === 'compressor')
+  const fan = installation.components.find((component) => component.kind === 'fan')
+  const solenoid = installation.components.find((component) => component.kind === 'solenoidValve')
+  const sensor = installation.components.find((component) => component.kind === 'sensor')
+  const relay = installation.components.find((component) => component.kind === 'relay')
   const compressorCurrent = compressor
     ? runtime.electrical.loadCurrentByComponent[compressor.id] ?? 0
     : 0
+
+  const fanCurrent = fan ? runtime.electrical.loadCurrentByComponent[fan.id] ?? 0 : 0
+  const solenoidCurrent = solenoid ? runtime.electrical.loadCurrentByComponent[solenoid.id] ?? 0 : 0
+
+  const fanState = fan ? runtime.components[fan.id] : null
+  const solenoidState = solenoid ? runtime.components[solenoid.id] : null
+  const sensorState = sensor ? runtime.components[sensor.id] : null
+  const relayState = relay ? runtime.components[relay.id] : null
 
   const fuseNode = Object.values(runtime.electrical.nodes).find((node) => node.linkedComponentId === installation.components.find((component) => component.kind === 'fuse')?.id)
   const regulatorNode = Object.values(runtime.electrical.nodes).find((node) => node.linkedComponentId === installation.components.find((component) => component.kind === 'regulator')?.id)
@@ -31,40 +43,60 @@ export function ElectricalSchematic({ installation, runtime }: ElectricalSchemat
     <article className="schema-card">
       <header>
         <h3>Schema electrique vivant</h3>
-        <p>Alimentation, relais, contacteur, moteurs, voyants</p>
+        <p>Alimentation, protections, commande, relais et charges finales</p>
       </header>
 
-      <svg viewBox="0 0 500 230" role="img" aria-label="Schema electrique dynamique">
-        <line x1="20" y1="32" x2="470" y2="32" stroke={powerColor} strokeWidth="4" className="power-line" />
+      <svg viewBox="0 0 760 290" role="img" aria-label="Schema electrique dynamique">
+        <line x1="24" y1="32" x2="734" y2="32" stroke={powerColor} strokeWidth="4" className="power-line" />
         <text x="28" y="24">L</text>
-        <text x="460" y="24">N</text>
+        <text x="722" y="24">N</text>
 
-        <rect x="60" y="70" width="90" height="44" rx="6" className="node" />
+        <rect x="60" y="70" width="100" height="44" rx="6" className={`node ${runtime.electrical.railPowered ? 'active' : 'inactive'}`} />
         <text x="74" y="96">Disjoncteur</text>
 
-        <rect x="180" y="70" width="90" height="44" rx="6" className="node" />
-        <text x="210" y="96">Fusible</text>
+        <rect x="190" y="70" width="100" height="44" rx="6" className={`node ${fuseNode?.energized ? 'active' : 'inactive'}`} />
+        <text x="214" y="96">Fusible</text>
 
-        <rect x="300" y="70" width="120" height="44" rx="6" className="node" />
-        <text x="318" y="96">Regulateur</text>
+        <rect x="320" y="70" width="120" height="44" rx="6" className={`node ${regulatorNode?.energized ? 'active' : 'inactive'}`} />
+        <text x="340" y="96">Regulateur</text>
 
-        <line x1="105" y1="114" x2="105" y2="170" stroke={powerColor} strokeWidth="4" className="power-line" />
-        <line x1="225" y1="114" x2="225" y2="170" stroke={powerColor} strokeWidth="4" className="power-line" />
-        <line x1="360" y1="114" x2="360" y2="170" stroke={powerColor} strokeWidth="4" className="power-line" />
+        <rect x="470" y="70" width="100" height="44" rx="6" className={`node ${relayState?.powered ? 'active' : 'inactive'}`} />
+        <text x="500" y="96">Relais</text>
 
-        <circle cx="105" cy="184" r="20" className="motor" />
-        <text x="98" y="190">KM1</text>
+        <rect x="596" y="70" width="100" height="44" rx="6" className={`node ${contactorNode?.energized ? 'active' : 'inactive'}`} />
+        <text x="614" y="96">KM1</text>
 
-        <circle cx="225" cy="184" r="20" className="motor" />
-        <text x="214" y="190">M1</text>
+        <line x1="110" y1="114" x2="110" y2="184" stroke={powerColor} strokeWidth="4" className="power-line" />
+        <line x1="240" y1="114" x2="240" y2="184" stroke={powerColor} strokeWidth="4" className="power-line" />
+        <line x1="380" y1="114" x2="380" y2="184" stroke={powerColor} strokeWidth="4" className="power-line" />
+        <line x1="520" y1="114" x2="520" y2="184" stroke={powerColor} strokeWidth="4" className="power-line" />
+        <line x1="646" y1="114" x2="646" y2="184" stroke={powerColor} strokeWidth="4" className="power-line" />
 
-        <circle cx="360" cy="184" r="20" className="motor" />
-        <text x="349" y="190">M2</text>
+        <circle cx="240" cy="208" r="22" className={`motor ${contactorState?.running ? 'active' : 'inactive'}`} />
+        <text x="229" y="213">M1</text>
+        <text x="214" y="234" className="diagram-state">Compresseur</text>
 
-        <text x="28" y="218" className="metric">
+        <circle cx="380" cy="208" r="22" className={`motor ${fanState?.running ? 'active' : 'inactive'}`} />
+        <text x="368" y="213">M2</text>
+        <text x="356" y="234" className="diagram-state">Ventilateurs</text>
+
+        <circle cx="520" cy="208" r="22" className={`motor ${solenoidState?.running ? 'active' : 'inactive'}`} />
+        <text x="509" y="213">SV</text>
+        <text x="494" y="234" className="diagram-state">Electrovanne</text>
+
+        <rect x="620" y="190" width="52" height="36" rx="6" className={`node ${sensorState?.powered ? 'active' : 'inactive'}`} />
+        <text x="632" y="212" className="diagram-state">Sonde</text>
+
+        <line x1="240" y1="230" x2="240" y2="258" stroke="#6d879e" strokeWidth="2" />
+        <line x1="380" y1="230" x2="380" y2="258" stroke="#6d879e" strokeWidth="2" />
+        <line x1="520" y1="230" x2="520" y2="258" stroke="#6d879e" strokeWidth="2" />
+        <line x1="646" y1="226" x2="646" y2="258" stroke="#6d879e" strokeWidth="2" />
+        <line x1="110" y1="258" x2="700" y2="258" stroke="#6d879e" strokeWidth="2" />
+
+        <text x="26" y="282" className="metric">
           Contacteur: {contactorState?.running ? 'FERME' : 'OUVERT'}
         </text>
-        <text x="260" y="218" className={hasAlarm ? 'metric critical' : 'metric'}>
+        <text x="300" y="282" className={hasAlarm ? 'metric critical' : 'metric'}>
           Etat: {hasAlarm ? 'DEFAUT' : 'NORMAL'} | Noeuds: {energizedCount}
         </text>
       </svg>
@@ -75,6 +107,8 @@ export function ElectricalSchematic({ installation, runtime }: ElectricalSchemat
         <span>Contacteur: {contactorStatus}</span>
         <span>Chemins actifs: {activePaths}</span>
         <span>Courant compresseur: {compressorCurrent.toFixed(2)} A</span>
+        <span>Courant ventilateurs: {fanCurrent.toFixed(2)} A</span>
+        <span>Courant electrovanne: {solenoidCurrent.toFixed(2)} A</span>
       </div>
     </article>
   )

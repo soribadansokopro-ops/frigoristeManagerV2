@@ -152,6 +152,16 @@ export function ElectricalDiagram({ runtime }: { runtime: InstallationRuntime })
     [procedureResults, selected.A, selected.B],
   )
 
+  const fuseVoltage = runtime.electrical.testPointVoltage['tp:fuse_out'] ?? 0
+  const regulatorVoltage = runtime.electrical.testPointVoltage['tp:reg_out'] ?? 0
+  const coilVoltage = runtime.electrical.testPointVoltage['tp:km_a1'] ?? 0
+  const compressorVoltage = runtime.electrical.testPointVoltage['tp:comp_l'] ?? 0
+
+  const fuseState = fuseVoltage > 200 ? 'ALIMENTE' : 'COUPE'
+  const regulatorState = regulatorVoltage > 200 ? 'ACTIF' : 'INACTIF'
+  const coilState = coilVoltage > 200 ? 'EXCITEE' : 'REPOS'
+  const compressorState = compressorVoltage > 200 ? 'ALIMENTE' : 'ARRET'
+
   const selectPoint = (pointId: string) => {
     setElectricalProbe(activeProbe, pointId)
     setActiveProbe(activeProbe === 'A' ? 'B' : 'A')
@@ -175,17 +185,21 @@ export function ElectricalDiagram({ runtime }: { runtime: InstallationRuntime })
 
         <rect x="218" y="78" width="110" height="48" rx="8" className="node" />
         <text x="248" y="106">Fusible F1</text>
+        <text x="220" y="122" className="diagram-state">{fuseState}</text>
 
         <rect x="352" y="78" width="130" height="48" rx="8" className="node" />
         <text x="370" y="106">Regulateur R1</text>
+        <text x="362" y="122" className="diagram-state">{regulatorState}</text>
 
         <rect x="506" y="78" width="130" height="48" rx="8" className="node" />
         <text x="526" y="106">Bobine KM1</text>
+        <text x="518" y="122" className="diagram-state">{coilState}</text>
 
         <line x1="636" y1="102" x2="636" y2="174" stroke={railColor} strokeWidth="4" className="power-line" />
         <line x1="636" y1="174" x2="716" y2="174" stroke={railColor} strokeWidth="4" className="power-line" />
         <rect x="716" y="150" width="128" height="48" rx="8" className="node" />
         <text x="734" y="178">Compresseur M1</text>
+        <text x="724" y="194" className="diagram-state">{compressorState}</text>
 
         <line x1="844" y1="174" x2="844" y2="34" stroke={railColor} strokeWidth="4" className="power-line" />
 

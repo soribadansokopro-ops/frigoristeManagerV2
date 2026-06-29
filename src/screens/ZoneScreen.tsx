@@ -1,10 +1,12 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getLevelBackground } from '../config/visuals'
 import { useSimulationTick } from '../hooks/useSimulationTick'
 import { ElectricalDiagram } from '../ui/Diagram/Electrical/ElectricalDiagram'
 import { RefrigerationDiagram } from '../ui/Diagram/RefrigerationDiagram'
 import { AlarmPanel } from '../ui/Panels/AlarmPanel'
+import { MissionGuidePanel } from '../ui/Panels/MissionGuidePanel'
+import { ProcessPanel } from '../ui/Panels/ProcessPanel'
 import { PropertiesPanel } from '../ui/Panels/PropertiesPanel'
 import { RegulatorPanel } from '../ui/Panels/RegulatorPanel'
 import { ElectricalSchematic } from '../ui/ElectricalSchematic'
@@ -25,6 +27,8 @@ export function ZoneScreen() {
   const { levelId, zoneId } = useParams()
   const level = Number(levelId)
   const navigate = useNavigate()
+  const [showMeubleMenu, setShowMeubleMenu] = useState(true)
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   const installations = useGameStore((state) => state.installations)
   const isLoaded = useGameStore((state) => state.isLoaded)
@@ -63,6 +67,12 @@ export function ZoneScreen() {
 
   const safeZoneId = isKnownZone(zoneId) ? zoneId : 'schema-frigo'
 
+  useEffect(() => {
+    if (safeZoneId === 'meuble') {
+      setShowMeubleMenu(true)
+    }
+  }, [safeZoneId])
+
   if (!definition || !runtime) {
     return (
       <main className="loading-shell">
@@ -75,7 +85,7 @@ export function ZoneScreen() {
   const bg = getLevelBackground(definition.kind)
 
   return (
-    <main className="zone-shell">
+    <main className="zone-shell software-zone-shell">
       <header className="zone-topbar">
         <div>
           <h1>{zoneLabel[safeZoneId] ?? 'Zone technique'}</h1>
@@ -86,6 +96,9 @@ export function ZoneScreen() {
           <button type="button" onClick={() => navigate(`/level/${level}/zone/schema-frigo`)}>Schema frigo</button>
           <button type="button" onClick={() => navigate(`/level/${level}/zone/schema-elec`)}>Schema elec</button>
           <button type="button" onClick={() => navigate(`/level/${level}/zone/regulateur`)}>Regulateur</button>
+          <button type="button" onClick={() => setShowAdvanced((current) => !current)}>
+            {showAdvanced ? 'Mode essentiel' : 'Afficher details'}
+          </button>
           <Link to={`/level/${level}`}>Atelier complet</Link>
         </div>
       </header>
@@ -100,31 +113,59 @@ export function ZoneScreen() {
       )}
 
       {safeZoneId === 'meuble' && (
-        <section className="zone-content-grid">
+        <section className="zone-content-grid meuble-grid">
           <article className="zone-scene-card">
             <img src="/assets/scenes/meuble-positif-page.png" alt="Meuble positif" />
             <button
               type="button"
-              className="zone-outline-hotspot meuble-scene-hotspot"
-              onClick={() => navigate(`/level/${level}/zone/schema-frigo`)}
+              className="zone-hidden-hotspot meuble-scene-hotspot"
+              onClick={() => setShowMeubleMenu((current) => !current)}
+              aria-label="Ouvrir le menu du meuble"
             >
-              Ouvrir schema frigo
+              Ouvrir menu meuble
             </button>
           </article>
 
-          <article className="schema-card">
+          <article className="schema-card meuble-menu-card">
             <header>
-              <h3>Etat equipements meuble</h3>
-              <p>Vue detaillee des principaux organes</p>
+              <h3>Menu meuble</h3>
+              <p>Cliquer sur le meuble dans l image pour afficher ce menu.</p>
             </header>
-            <div className="diagram-inspector">
-              {Object.entries(runtime.components)
-                .slice(0, 8)
-                .map(([id, state]) => (
+            <button
+              type="button"
+              className="meuble-menu-toggle"
+              onClick={() => setShowMeubleMenu((current) => !current)}
+            >
+              {showMeubleMenu ? 'Masquer menu' : 'Afficher menu'}
+            </button>
+            {showMeubleMenu && (
+              <div className="meuble-menu-actions">
+                <button type="button" onClick={() => navigate(`/level/${level}/zone/schema-frigo`)}>
+                  Schema frigo
+                </button>
+                <button type="button" onClick={() => navigate(`/level/${level}/zone/schema-elec`)}>
+                  Schema elec
+                </button>
+                <button type="button" onClick={() => navigate(`/level/${level}/zone/regulateur`)}>
+                  Regulateur
+                </button>
+              </div>
+            )}
+
+            {showAdvanced && (
+              <div className="diagram-inspector compact">
+                {Object.entries(runtime.components).slice(0, 8).map(([id, state]) => (
                   <span key={id}>{id}: {state.running ? 'ON' : 'OFF'} / {state.powered ? 'alim' : 'off'}</span>
                 ))}
-            </div>
+              </div>
+            )}
+
+            {!showMeubleMenu && <p className="meuble-hint">Astuce: cliquez sur le meuble pour ouvrir le menu.</p>}
+            {showMeubleMenu && <p className="meuble-hint is-active">Menu meuble actif. Choisissez la vue technique.</p>}
           </article>
+
+          <MissionGuidePanel installation={definition} runtime={runtime} />
+          {showAdvanced && <ProcessPanel runtime={runtime} />}
         </section>
       )}
 
@@ -137,8 +178,10 @@ export function ZoneScreen() {
             </header>
             <RefrigerationDiagram installation={definition} runtime={runtime} />
           </article>
-          <RefrigerationSchematic installation={definition} runtime={runtime} />
-          <PropertiesPanel runtime={runtime} />
+          <MissionGuidePanel installation={definition} runtime={runtime} />
+          {showAdvanced && <ProcessPanel runtime={runtime} />}
+          {showAdvanced && <RefrigerationSchematic installation={definition} runtime={runtime} />}
+          {showAdvanced && <PropertiesPanel runtime={runtime} />}
         </section>
       )}
 
@@ -151,15 +194,19 @@ export function ZoneScreen() {
             </header>
             <ElectricalDiagram runtime={runtime} />
           </article>
-          <ElectricalSchematic installation={definition} runtime={runtime} />
-          <AlarmPanel runtime={runtime} />
+          <MissionGuidePanel installation={definition} runtime={runtime} />
+          {showAdvanced && <ProcessPanel runtime={runtime} />}
+          {showAdvanced && <ElectricalSchematic installation={definition} runtime={runtime} />}
+          {showAdvanced && <AlarmPanel runtime={runtime} />}
         </section>
       )}
 
       {safeZoneId === 'regulateur' && (
         <section className="zone-content-grid">
           <RegulatorPanel installation={definition} runtime={runtime} />
-          <AlarmPanel runtime={runtime} />
+          <MissionGuidePanel installation={definition} runtime={runtime} />
+          {showAdvanced && <ProcessPanel runtime={runtime} />}
+          {showAdvanced && <AlarmPanel runtime={runtime} />}
           <article className="zone-scene-card">
             <img src={bg} alt={definition.model} />
           </article>
