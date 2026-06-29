@@ -1,0 +1,12 @@
+[
+  {
+    "id": "m-freshline-pos-001",
+    "installation": "freshline-pos-900",
+    "fault": "f1-contacteur-km1-hs"
+  },
+  {
+    "id": "m-freshline-neg-001",
+    "installation": "freshline-neg-900",
+    "fault": "f2-fuite-detendeur"
+  }
+]

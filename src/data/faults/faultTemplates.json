@@ -1,0 +1,18 @@
+[
+  {
+    "template": "compressorThermal",
+    "payload": {
+      "compressor": {
+        "thermal": true
+      }
+    }
+  },
+  {
+    "template": "gasLeak",
+    "payload": {
+      "circuit": {
+        "leak": true
+      }
+    }
+  }
+]

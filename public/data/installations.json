@@ -1,0 +1,368 @@
+[
+  {
+    "id": "freshline-pos-900",
+    "level": 1,
+    "name": "FreshLine POS-900",
+    "model": "FreshLine POS-900",
+    "kind": "DISPLAY_CASE_POSITIVE",
+    "missionTitle": "Meuble groupe loge positif",
+    "missionDescription": "Diagnostiquer une derive de temperature sur meuble positif puis retablir un fonctionnement nominal.",
+    "base": {
+      "hp": 12.5,
+      "bp": 2.2,
+      "boxTemp": 2.5,
+      "superheat": 6.2,
+      "subcool": 4.1,
+      "compressorCurrent": 8.4
+    },
+    "components": [
+      { "id": "cp1", "name": "Compresseur", "kind": "compressor", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "cd1", "name": "Condenseur", "kind": "condenser", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "ev1", "name": "Evaporateur", "kind": "evaporator", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "dt1", "name": "Detendeur", "kind": "expansionValve", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "fv1", "name": "Ventilateurs", "kind": "fan", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "rg1", "name": "Regulateur", "kind": "regulator", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "ct1", "name": "Contacteur", "kind": "contactor", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "fu1", "name": "Fusible", "kind": "fuse", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } }
+    ],
+    "faults": [
+      {
+        "id": "f1-contacteur-km1-hs",
+        "name": "Contacteur KM1 HS",
+        "description": "Le contacteur ne ferme plus, le compresseur ne demarre pas.",
+        "severity": "critical",
+        "effects": {
+          "pressureShift": { "hp": -2.8, "bp": 1.4 },
+          "temperatureShift": 2.8,
+          "currentMultiplier": -1,
+          "forceStopComponentIds": ["cp1", "ct1"],
+          "powerCutComponentIds": [],
+          "leakComponentIds": [],
+          "alarms": ["DEFAUT CONTACTEUR KM1"]
+        },
+        "repairAction": "Remplacer contacteur KM1"
+      },
+      {
+        "id": "f1-sonde-air-coupee",
+        "name": "Sonde air coupee",
+        "description": "La sonde est ouverte, regulation degradee.",
+        "severity": "warning",
+        "effects": {
+          "pressureShift": { "hp": 0.3, "bp": 0.6 },
+          "temperatureShift": 1.7,
+          "currentMultiplier": 0.1,
+          "forceStopComponentIds": [],
+          "powerCutComponentIds": [],
+          "leakComponentIds": [],
+          "alarms": ["ALARME SONDE AIR"]
+        },
+        "repairAction": "Remplacer sonde air"
+      }
+    ]
+  },
+  {
+    "id": "freshline-neg-900",
+    "level": 2,
+    "name": "FreshLine NEG-900",
+    "model": "FreshLine NEG-900",
+    "kind": "DISPLAY_CASE_NEGATIVE",
+    "missionTitle": "Meuble groupe loge negatif",
+    "missionDescription": "Restaurer la production de froid sur meuble negatif avec alarme basse pression.",
+    "base": {
+      "hp": 11.2,
+      "bp": 1.1,
+      "boxTemp": -21,
+      "superheat": 8.5,
+      "subcool": 3.8,
+      "compressorCurrent": 9.7
+    },
+    "components": [
+      { "id": "cp2", "name": "Compresseur", "kind": "compressor", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "cd2", "name": "Condenseur", "kind": "condenser", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "ev2", "name": "Evaporateur", "kind": "evaporator", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "dt2", "name": "Detendeur", "kind": "expansionValve", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "fv2", "name": "Ventilateurs", "kind": "fan", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "rg2", "name": "Regulateur", "kind": "regulator", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "ct2", "name": "Contacteur", "kind": "contactor", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "fu2", "name": "Fusible", "kind": "fuse", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } }
+    ],
+    "faults": [
+      {
+        "id": "f2-fuite-detendeur",
+        "name": "Micro fuite ligne liquide",
+        "description": "Fuite sur raccord detendeur avec manque de charge progressif.",
+        "severity": "critical",
+        "effects": {
+          "pressureShift": { "hp": -2.1, "bp": -0.4 },
+          "temperatureShift": 3,
+          "currentMultiplier": -0.15,
+          "forceStopComponentIds": [],
+          "powerCutComponentIds": [],
+          "leakComponentIds": ["dt2"],
+          "alarms": ["PRESSION ASPIRATION TROP BASSE"]
+        },
+        "repairAction": "Braser le raccord puis remise en charge"
+      },
+      {
+        "id": "f2-fusible-grille",
+        "name": "Fusible commande grille",
+        "description": "Le regulateur n est plus alimente.",
+        "severity": "critical",
+        "effects": {
+          "pressureShift": { "hp": -1.9, "bp": 0.8 },
+          "temperatureShift": 2.6,
+          "currentMultiplier": -0.9,
+          "forceStopComponentIds": ["cp2"],
+          "powerCutComponentIds": ["fu2", "rg2"],
+          "leakComponentIds": [],
+          "alarms": ["REGULATEUR HORS TENSION"]
+        },
+        "repairAction": "Remplacer fusible"
+      }
+    ]
+  },
+  {
+    "id": "cryoroom-c-plus",
+    "level": 3,
+    "name": "CryoRoom C+",
+    "model": "CryoRoom C+",
+    "kind": "COLD_ROOM_POSITIVE",
+    "missionTitle": "Chambre froide positive",
+    "missionDescription": "Analyser une ventilation instable sur chambre froide positive.",
+    "base": {
+      "hp": 13.4,
+      "bp": 2.5,
+      "boxTemp": 3.2,
+      "superheat": 5.8,
+      "subcool": 5,
+      "compressorCurrent": 12.2
+    },
+    "components": [
+      { "id": "cp3", "name": "Compresseur", "kind": "compressor", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "cd3", "name": "Condenseur", "kind": "condenser", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "ev3", "name": "Evaporateur", "kind": "evaporator", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "dt3", "name": "Detendeur", "kind": "expansionValve", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "fv3", "name": "Ventilateurs", "kind": "fan", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "rg3", "name": "Regulateur", "kind": "regulator", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "ct3", "name": "Contacteur", "kind": "contactor", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "fu3", "name": "Fusible", "kind": "fuse", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } }
+    ],
+    "faults": [
+      {
+        "id": "f3-ventilation-stop",
+        "name": "Ventilation evaporateur arretee",
+        "description": "Le moteur ventilateur est bloque.",
+        "severity": "warning",
+        "effects": {
+          "pressureShift": { "hp": 0.5, "bp": -0.2 },
+          "temperatureShift": 2.2,
+          "currentMultiplier": 0.05,
+          "forceStopComponentIds": ["fv3"],
+          "powerCutComponentIds": [],
+          "leakComponentIds": [],
+          "alarms": ["DEFAUT VENTILATION EVAPORATEUR"]
+        },
+        "repairAction": "Debloquer ou remplacer moteur ventilateur"
+      },
+      {
+        "id": "f3-sonde-coupure",
+        "name": "Sonde retour air ouverte",
+        "description": "La regulation ne lit plus la temperature de retour.",
+        "severity": "warning",
+        "effects": {
+          "pressureShift": { "hp": 0.1, "bp": 0.5 },
+          "temperatureShift": 1.4,
+          "currentMultiplier": 0,
+          "forceStopComponentIds": [],
+          "powerCutComponentIds": [],
+          "leakComponentIds": [],
+          "alarms": ["ERREUR SONDE RETOUR"]
+        },
+        "repairAction": "Remplacer sonde retour"
+      }
+    ]
+  },
+  {
+    "id": "cryoroom-c-minus",
+    "level": 4,
+    "name": "CryoRoom C-",
+    "model": "CryoRoom C-",
+    "kind": "COLD_ROOM_NEGATIVE",
+    "missionTitle": "Chambre froide negative",
+    "missionDescription": "Intervenir sur chambre negative avec denivellation de pression anormale.",
+    "base": {
+      "hp": 12.1,
+      "bp": 0.9,
+      "boxTemp": -24,
+      "superheat": 9.2,
+      "subcool": 3.6,
+      "compressorCurrent": 14.8
+    },
+    "components": [
+      { "id": "cp4", "name": "Compresseur", "kind": "compressor", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "cd4", "name": "Condenseur", "kind": "condenser", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "ev4", "name": "Evaporateur", "kind": "evaporator", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "dt4", "name": "Detendeur", "kind": "expansionValve", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "fv4", "name": "Ventilateurs", "kind": "fan", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "rg4", "name": "Regulateur", "kind": "regulator", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "ct4", "name": "Contacteur", "kind": "contactor", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "fu4", "name": "Fusible", "kind": "fuse", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } }
+    ],
+    "faults": [
+      {
+        "id": "f4-bobine-coupee",
+        "name": "Bobine electrovanne coupee",
+        "description": "L electrovanne ne s ouvre plus, l evaporateur se coupe.",
+        "severity": "critical",
+        "effects": {
+          "pressureShift": { "hp": 1.2, "bp": -0.8 },
+          "temperatureShift": 3.4,
+          "currentMultiplier": 0.12,
+          "forceStopComponentIds": ["ev4"],
+          "powerCutComponentIds": [],
+          "leakComponentIds": [],
+          "alarms": ["DEFAUT ELECTROVANNE"]
+        },
+        "repairAction": "Remplacer bobine electrovanne"
+      },
+      {
+        "id": "f4-fuite-evapo",
+        "name": "Fuite evaporateur",
+        "description": "Perte de charge sur evaporateur.",
+        "severity": "critical",
+        "effects": {
+          "pressureShift": { "hp": -2.2, "bp": -0.3 },
+          "temperatureShift": 3.6,
+          "currentMultiplier": -0.2,
+          "forceStopComponentIds": [],
+          "powerCutComponentIds": [],
+          "leakComponentIds": ["ev4"],
+          "alarms": ["MANQUE DE CHARGE FRIGORIFIQUE"]
+        },
+        "repairAction": "Reparer fuite evaporateur"
+      }
+    ]
+  },
+  {
+    "id": "polarrack-hfc-p",
+    "level": 5,
+    "name": "PolarRack HFC-P",
+    "model": "PolarRack HFC-P",
+    "kind": "RACK_POSITIVE",
+    "missionTitle": "Centrale HFC positive",
+    "missionDescription": "Analyser un comportement compresseur de tete instable sur centrale positive.",
+    "base": {
+      "hp": 14.2,
+      "bp": 2.8,
+      "boxTemp": 3,
+      "superheat": 6.1,
+      "subcool": 6.4,
+      "compressorCurrent": 26.5
+    },
+    "components": [
+      { "id": "cp5", "name": "Compresseur rack", "kind": "compressor", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "cd5", "name": "Condenseur air", "kind": "condenser", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "ev5", "name": "Evaporateurs magasins", "kind": "evaporator", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "dt5", "name": "Detendeur principal", "kind": "expansionValve", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "fv5", "name": "Ventilation condenseur", "kind": "fan", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "rg5", "name": "Regulateur centrale", "kind": "regulator", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "ct5", "name": "Contacteur rack", "kind": "contactor", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "fu5", "name": "Fusible commande", "kind": "fuse", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } }
+    ],
+    "faults": [
+      {
+        "id": "f5-regulateur-off",
+        "name": "Regulateur hors tension",
+        "description": "Le rack passe en securite faute de regulation.",
+        "severity": "critical",
+        "effects": {
+          "pressureShift": { "hp": -3.4, "bp": 1.9 },
+          "temperatureShift": 2.2,
+          "currentMultiplier": -0.95,
+          "forceStopComponentIds": ["cp5"],
+          "powerCutComponentIds": ["rg5"],
+          "leakComponentIds": [],
+          "alarms": ["REGULATION INDISPONIBLE"]
+        },
+        "repairAction": "Realimenter regulateur"
+      },
+      {
+        "id": "f5-condenseur-encrasse",
+        "name": "Condenseur encrasse",
+        "description": "La condensation monte et surcharge la centrale.",
+        "severity": "warning",
+        "effects": {
+          "pressureShift": { "hp": 2.7, "bp": 0.3 },
+          "temperatureShift": 1.4,
+          "currentMultiplier": 0.2,
+          "forceStopComponentIds": [],
+          "powerCutComponentIds": [],
+          "leakComponentIds": [],
+          "alarms": ["HP ELEVEE CONDENSATION"]
+        },
+        "repairAction": "Nettoyer batterie condenseur"
+      }
+    ]
+  },
+  {
+    "id": "polarrack-hfc-n",
+    "level": 6,
+    "name": "PolarRack HFC-N",
+    "model": "PolarRack HFC-N",
+    "kind": "RACK_NEGATIVE",
+    "missionTitle": "Centrale HFC negative",
+    "missionDescription": "Gerer une panne combinee electrique et frigorifique sur centrale negative.",
+    "base": {
+      "hp": 13,
+      "bp": 0.7,
+      "boxTemp": -22,
+      "superheat": 10.1,
+      "subcool": 4,
+      "compressorCurrent": 28.3
+    },
+    "components": [
+      { "id": "cp6", "name": "Compresseur basse temperature", "kind": "compressor", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "cd6", "name": "Condenseur hybride", "kind": "condenser", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "ev6", "name": "Evaporateurs basse temp", "kind": "evaporator", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "dt6", "name": "Detendeur basse temp", "kind": "expansionValve", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "fv6", "name": "Ventilation condenseur", "kind": "fan", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "rg6", "name": "Regulateur rack", "kind": "regulator", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "ct6", "name": "Contacteur principal", "kind": "contactor", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } },
+      { "id": "fu6", "name": "Fusible commande", "kind": "fuse", "defaultState": { "powered": true, "running": true, "open": false, "health": 100, "leaking": false } }
+    ],
+    "faults": [
+      {
+        "id": "f6-contacteur-colle",
+        "name": "Contacteur colle puis ouvre",
+        "description": "Comportement erratique du contacteur principal.",
+        "severity": "critical",
+        "effects": {
+          "pressureShift": { "hp": -2.4, "bp": 1.1 },
+          "temperatureShift": 2.9,
+          "currentMultiplier": -0.55,
+          "forceStopComponentIds": ["cp6", "ct6"],
+          "powerCutComponentIds": [],
+          "leakComponentIds": [],
+          "alarms": ["DEFAUT CONTACTEUR PRINCIPAL"]
+        },
+        "repairAction": "Remplacer contacteur principal"
+      },
+      {
+        "id": "f6-fuite-receiver",
+        "name": "Fuite reservoir liquide",
+        "description": "Fuite lente entrainant un manque de charge severe.",
+        "severity": "critical",
+        "effects": {
+          "pressureShift": { "hp": -3.1, "bp": -0.5 },
+          "temperatureShift": 4.1,
+          "currentMultiplier": -0.25,
+          "forceStopComponentIds": [],
+          "powerCutComponentIds": [],
+          "leakComponentIds": ["dt6"],
+          "alarms": ["MANQUE DE CHARGE CRITIQUE"]
+        },
+        "repairAction": "Supprimer fuite puis recharge fluide"
+      }
+    ]
+  }
+]
