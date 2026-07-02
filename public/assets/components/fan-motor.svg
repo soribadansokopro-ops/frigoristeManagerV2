@@ -1,0 +1,12 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <rect width="800" height="520" rx="28" fill="#0c2238"/>
+  <circle cx="400" cy="245" r="155" fill="#14486f" stroke="#8ed8ff" stroke-width="8"/>
+  <circle cx="400" cy="245" r="24" fill="#a9e6ff"/>
+  <g fill="#d9f4ff">
+    <path d="M400 118 438 232 400 224 362 232Z"/>
+    <path d="M523 245 409 283 417 245 409 207Z"/>
+    <path d="M400 372 362 258 400 266 438 258Z"/>
+    <path d="M277 245 391 207 383 245 391 283Z"/>
+  </g>
+  <text x="400" y="468" text-anchor="middle" font-family="Rajdhani, Arial" font-size="44" fill="#def4ff">VENTILATEUR</text>
+</svg>

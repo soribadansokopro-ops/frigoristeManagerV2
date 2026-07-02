@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useGameStore } from '../../../store/gameStore'
 import type { InstallationRuntime } from '../../../types/game'
+import { DsButton } from '../../../design-system'
 
 const pointMeta = [
   { id: 'tp:l', label: 'L', x: 48, y: 34 },
@@ -228,7 +229,7 @@ export function ElectricalDiagram({ runtime }: { runtime: InstallationRuntime })
         <span>Point A: {selected.A ?? '--'}</span>
         <span>Point B: {selected.B ?? '--'}</span>
         <span>U(A-B): {runtime.electrical.measuredVoltage === null ? '--' : `${runtime.electrical.measuredVoltage.toFixed(1)} V`}</span>
-        <button type="button" onClick={triggerElectricalMeasurement}>Mesurer tension</button>
+        <DsButton onClick={triggerElectricalMeasurement}>Mesurer tension</DsButton>
       </div>
 
       <article className="electrical-procedure-card">
@@ -246,7 +247,7 @@ export function ElectricalDiagram({ runtime }: { runtime: InstallationRuntime })
                 <p>Attendu: {step.expectedText}</p>
                 <p>Calcule: {step.measured.toFixed(1)} V</p>
               </div>
-              <button type="button" onClick={() => applyProcedureStep(step)}>Placer sondes</button>
+              <DsButton variant="secondary" onClick={() => applyProcedureStep(step)}>Placer sondes</DsButton>
             </li>
           ))}
         </ol>

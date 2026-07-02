@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useGameStore } from '../store/gameStore'
+import { DsBadge, DsButton, DsCard, DsProgressBar } from '../design-system'
 
 interface FaultScenario {
   id: string
@@ -111,41 +112,55 @@ export function FaultSelectionScreen() {
   }
 
   return (
-    <main className="fault-select-shell">
-      <section className="fault-select-panel">
-        <header>
-          <h1>Choix de la panne</h1>
-          <p>
+    <main className="app-screen min-h-screen bg-[linear-gradient(145deg,#030a15,#081a33_56%,#0f2748)] px-4 py-5">
+      <section className="app-shell mx-auto grid w-full max-w-[1180px] gap-4 rounded-2xl border border-[#27679e] bg-[linear-gradient(180deg,rgba(8,31,58,.93),rgba(5,18,35,.92))] p-4 shadow-[0_12px_28px_rgba(2,8,15,.34)]">
+        <header className="space-y-2">
+          <h1 className="font-['Rajdhani'] text-3xl uppercase tracking-wide text-[#e8f3ff]">Choix de la panne</h1>
+          <p className="text-[#8ba7c2]">
             {definition.model} - Choisir un cas de panne avant de commencer l intervention.
           </p>
         </header>
 
-        <div className="fault-select-grid">
+        <div className="app-scroll-y grid grid-cols-1 gap-3 lg:grid-cols-2">
           {scenarios.map((scenario, index) => (
-            <motion.button
+            <motion.div
               key={scenario.id}
-              type="button"
-              className="fault-choice-card"
+              className="grid gap-2 transition hover:-translate-y-[2px]"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: index * 0.03 }}
-              onClick={() => {
-                const query = new URLSearchParams({
-                  faults: scenario.faultIds.join(','),
-                  scenario: scenario.id,
-                })
-                navigate(`/level/${level}?${query.toString()}`)
-              }}
             >
-              <strong>{scenario.title}</strong>
-              <span>{scenario.brief}</span>
-              <small>Difficulte: {scenario.difficulty}</small>
-            </motion.button>
+              <DsCard title={scenario.title} subtitle={scenario.brief} variant="elevated">
+                <DsBadge tone={scenario.difficulty === 'Difficile' ? 'fault' : scenario.difficulty === 'Moyen' ? 'warn' : 'ok'}>
+                  Difficulte: {scenario.difficulty}
+                </DsBadge>
+                <DsProgressBar
+                  label="Complexite"
+                  value={scenario.difficulty === 'Difficile' ? 90 : scenario.difficulty === 'Moyen' ? 60 : 30}
+                  tone={scenario.difficulty === 'Difficile' ? 'fault' : scenario.difficulty === 'Moyen' ? 'warn' : 'ok'}
+                />
+                <details className="rounded-md border border-[#2a5f8f] bg-[rgba(4,18,34,.75)] px-2 py-1 text-[#8ba7c2]">
+                  <summary className="cursor-pointer text-[#ccecff]">Voir pannes associees</summary>
+                  <p className="mt-2 mb-0">IDs: {scenario.faultIds.join(', ')}</p>
+                </details>
+                <DsButton
+                  onClick={() => {
+                    const query = new URLSearchParams({
+                      faults: scenario.faultIds.join(','),
+                      scenario: scenario.id,
+                    })
+                    navigate(`/level/${level}?${query.toString()}`)
+                  }}
+                >
+                  Lancer ce scenario
+                </DsButton>
+              </DsCard>
+            </motion.div>
           ))}
         </div>
 
-        <footer className="fault-select-footer">
-          <Link to="/">Retour menu</Link>
+        <footer className="flex justify-end">
+          <DsButton to="/">Retour menu</DsButton>
         </footer>
       </section>
     </main>

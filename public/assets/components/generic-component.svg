@@ -1,0 +1,7 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <rect width="800" height="520" rx="28" fill="#0c2136"/>
+  <rect x="160" y="130" width="480" height="260" rx="18" fill="#174b75" stroke="#8ed8ff" stroke-width="8"/>
+  <rect x="205" y="175" width="390" height="170" rx="10" fill="#0f3658"/>
+  <text x="400" y="280" text-anchor="middle" font-family="Rajdhani, Arial" font-size="40" fill="#d9f4ff">COMPOSANT FRIGORIFIQUE</text>
+  <text x="400" y="468" text-anchor="middle" font-family="Rajdhani, Arial" font-size="34" fill="#def4ff">VUE TECHNIQUE</text>
+</svg>

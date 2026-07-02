@@ -1,0 +1,10 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f3253"/><stop offset="1" stop-color="#081a2d"/></linearGradient></defs>
+  <rect width="800" height="520" rx="28" fill="url(#g)"/>
+  <rect x="120" y="100" width="560" height="300" rx="20" fill="#16476f" stroke="#8ad7ff" stroke-width="7"/>
+  <g stroke="#d8f5ff" stroke-width="6" fill="none">
+    <path d="M160 150h480"/><path d="M160 190h480"/><path d="M160 230h480"/><path d="M160 270h480"/><path d="M160 310h480"/><path d="M160 350h480"/>
+    <path d="M190 130v240"/><path d="M250 130v240"/><path d="M310 130v240"/><path d="M370 130v240"/><path d="M430 130v240"/><path d="M490 130v240"/><path d="M550 130v240"/><path d="M610 130v240"/>
+  </g>
+  <text x="400" y="468" text-anchor="middle" font-family="Rajdhani, Arial" font-size="44" fill="#def4ff">EVAPORATEUR</text>
+</svg>

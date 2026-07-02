@@ -1,0 +1,10 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <rect width="800" height="520" rx="28" fill="#0b1f34"/>
+  <rect x="180" y="90" width="440" height="330" rx="20" fill="#1a4f7b" stroke="#93dcff" stroke-width="8"/>
+  <rect x="220" y="130" width="360" height="65" rx="10" fill="#0f3759"/>
+  <rect x="220" y="215" width="165" height="165" rx="10" fill="#0f3759"/>
+  <rect x="415" y="215" width="165" height="165" rx="10" fill="#0f3759"/>
+  <circle cx="300" cy="297" r="28" fill="#9edfff"/>
+  <circle cx="500" cy="297" r="28" fill="#9edfff"/>
+  <text x="400" y="468" text-anchor="middle" font-family="Rajdhani, Arial" font-size="40" fill="#def4ff">ARMOIRE ELECTRIQUE</text>
+</svg>

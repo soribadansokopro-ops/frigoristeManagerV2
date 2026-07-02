@@ -6,6 +6,7 @@ import type {
   InstallationRuntime,
   ToolType,
 } from '../types/game'
+import { DsButton } from '../design-system'
 
 interface ToolPanelProps {
   installation: InstallationDefinition
@@ -24,11 +25,12 @@ const toolLabels: Record<ToolType, string> = {
 export function ToolPanel({ installation, runtime, selectedTool }: ToolPanelProps) {
   const setSelectedTool = useGameStore((state) => state.setSelectedTool)
   const measureWithTool = useGameStore((state) => state.measureWithTool)
-  const activateFault = useGameStore((state) => state.activateFault)
   const repairFault = useGameStore((state) => state.repairFault)
 
-  const availableFaults = useMemo(
-    () => installation.faults.filter((fault) => !runtime.activeFaultIds.includes(fault.id)),
+  const activeFaults = useMemo(
+    () => runtime.activeFaultIds
+      .map((faultId) => installation.faults.find((item) => item.id === faultId))
+      .filter(Boolean),
     [installation.faults, runtime.activeFaultIds],
   )
 
@@ -38,21 +40,20 @@ export function ToolPanel({ installation, runtime, selectedTool }: ToolPanelProp
 
       <div className="tool-grid">
         {(Object.keys(toolLabels) as ToolType[]).map((tool) => (
-          <button
+          <DsButton
             key={tool}
-            type="button"
+            variant={selectedTool === tool ? 'primary' : 'ghost'}
             onClick={() => setSelectedTool(tool)}
-            className={selectedTool === tool ? 'selected' : ''}
           >
             <img src={toolIconByType[tool]} alt="" aria-hidden="true" />
             {toolLabels[tool]}
-          </button>
+          </DsButton>
         ))}
       </div>
 
-      <button type="button" className="measure-btn" onClick={measureWithTool}>
+      <DsButton onClick={measureWithTool}>
         Mesurer avec {toolLabels[selectedTool]}
-      </button>
+      </DsButton>
 
       {runtime.lastReading && (
         <article className="reading-box">
@@ -67,26 +68,19 @@ export function ToolPanel({ installation, runtime, selectedTool }: ToolPanelProp
       )}
 
       <article className="fault-zone">
-        <h4>Simulation pannes</h4>
-        {availableFaults.map((fault) => (
-          <button key={fault.id} type="button" onClick={() => activateFault(fault.id)}>
-            Injecter: {fault.name}
-          </button>
-        ))}
+        <h4>Panne(s) active(s)</h4>
+        {activeFaults.length === 0 && (
+          <p>Aucune panne active. Faites le test final puis validez l intervention.</p>
+        )}
 
-        {runtime.activeFaultIds.map((faultId) => {
-          const fault = installation.faults.find((item) => item.id === faultId)
-          if (!fault) {
-            return null
-          }
+        {activeFaults.map((fault) => {
+          if (!fault) return null
 
           return (
             <div key={fault.id} className="active-fault">
               <strong>{fault.name}</strong>
               <p>{fault.description}</p>
-              <button type="button" onClick={() => repairFault(fault.id)}>
-                Reparer
-              </button>
+              <DsButton variant="success" onClick={() => repairFault(fault.id)}>Reparer</DsButton>
             </div>
           )
         })}

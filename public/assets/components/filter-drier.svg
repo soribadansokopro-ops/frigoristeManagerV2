@@ -1,0 +1,9 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <rect width="800" height="520" rx="28" fill="#0c243a"/>
+  <rect x="180" y="150" width="440" height="220" rx="22" fill="#174a73" stroke="#93dcff" stroke-width="8"/>
+  <rect x="200" y="185" width="400" height="55" rx="10" fill="#0e3657"/>
+  <rect x="200" y="260" width="400" height="55" rx="10" fill="#0e3657"/>
+  <circle cx="238" cy="212" r="14" fill="#a9e6ff"/>
+  <circle cx="238" cy="287" r="14" fill="#a9e6ff"/>
+  <text x="400" y="468" text-anchor="middle" font-family="Rajdhani, Arial" font-size="38" fill="#def4ff">FILTRE DESHYDRATEUR</text>
+</svg>

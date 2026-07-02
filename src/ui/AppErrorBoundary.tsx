@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { DsButton } from '../design-system'
 
 interface AppErrorBoundaryProps {
   children: ReactNode
@@ -29,9 +30,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
       return (
         <main className="loading-shell">
           <p>Une erreur d affichage est survenue.</p>
-          <button type="button" onClick={() => window.location.reload()}>
-            Recharger l application
-          </button>
+          <DsButton onClick={() => window.location.reload()}>Recharger l application</DsButton>
         </main>
       )
     }

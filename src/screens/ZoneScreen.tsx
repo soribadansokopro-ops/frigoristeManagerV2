@@ -1,17 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { getLevelBackground } from '../config/visuals'
 import { useSimulationTick } from '../hooks/useSimulationTick'
-import { ElectricalDiagram } from '../ui/Diagram/Electrical/ElectricalDiagram'
-import { RefrigerationDiagram } from '../ui/Diagram/RefrigerationDiagram'
-import { AlarmPanel } from '../ui/Panels/AlarmPanel'
-import { MissionGuidePanel } from '../ui/Panels/MissionGuidePanel'
-import { ProcessPanel } from '../ui/Panels/ProcessPanel'
-import { PropertiesPanel } from '../ui/Panels/PropertiesPanel'
-import { RegulatorPanel } from '../ui/Panels/RegulatorPanel'
-import { ElectricalSchematic } from '../ui/ElectricalSchematic'
-import { RefrigerationSchematic } from '../ui/RefrigerationSchematic'
+import { SimpleLearningSchema } from '../ui/Diagram/SimpleLearningSchema'
+import { ExplodedMeubleView } from '../ui/Diagram/ExplodedMeubleView'
+import { FloatingActionDock } from '../ui/components/FloatingActionDock'
 import { useGameStore } from '../store/gameStore'
+import { RegulatorPage } from '../pages/RegulatorPage'
+import { DsButton, DsTabs } from '../design-system'
 
 const zoneLabel: Record<string, string> = {
   meuble: 'Page meuble',
@@ -27,8 +22,7 @@ export function ZoneScreen() {
   const { levelId, zoneId } = useParams()
   const level = Number(levelId)
   const navigate = useNavigate()
-  const [showMeubleMenu, setShowMeubleMenu] = useState(true)
-  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [showZoneHeader, setShowZoneHeader] = useState(false)
 
   const installations = useGameStore((state) => state.installations)
   const isLoaded = useGameStore((state) => state.isLoaded)
@@ -67,12 +61,6 @@ export function ZoneScreen() {
 
   const safeZoneId = isKnownZone(zoneId) ? zoneId : 'schema-frigo'
 
-  useEffect(() => {
-    if (safeZoneId === 'meuble') {
-      setShowMeubleMenu(true)
-    }
-  }, [safeZoneId])
-
   if (!definition || !runtime) {
     return (
       <main className="loading-shell">
@@ -82,26 +70,75 @@ export function ZoneScreen() {
     )
   }
 
-  const bg = getLevelBackground(definition.kind)
+  const airFlowM3h = runtime.thermo.airFlowM3h ?? runtime.thermo.flowRatio * 3000
+  const condenserApproach = runtime.thermo.condenserApproach ?? 10
+  const airflowLow = airFlowM3h < 1700
+  const condenserHot = condenserApproach > 14
+  const electricalIssue = !runtime.thermo.electricalPower
+
+  const nextZone = electricalIssue ? 'schema-elec' : airflowLow || condenserHot ? 'schema-frigo' : 'regulateur'
+  const nextZoneLabel =
+    nextZone === 'schema-elec'
+      ? 'Schema elec'
+      : nextZone === 'schema-frigo'
+        ? 'Schema frigo'
+        : 'Regulateur'
 
   return (
-    <main className="zone-shell software-zone-shell">
-      <header className="zone-topbar">
-        <div>
-          <h1>{zoneLabel[safeZoneId] ?? 'Zone technique'}</h1>
-          <p>{definition.model} - Navigation zone interactive</p>
-        </div>
-        <div className="zone-nav-buttons">
-          <button type="button" onClick={() => navigate(`/level/${level}/zone/meuble`)}>Meuble</button>
-          <button type="button" onClick={() => navigate(`/level/${level}/zone/schema-frigo`)}>Schema frigo</button>
-          <button type="button" onClick={() => navigate(`/level/${level}/zone/schema-elec`)}>Schema elec</button>
-          <button type="button" onClick={() => navigate(`/level/${level}/zone/regulateur`)}>Regulateur</button>
-          <button type="button" onClick={() => setShowAdvanced((current) => !current)}>
-            {showAdvanced ? 'Mode essentiel' : 'Afficher details'}
-          </button>
-          <Link to={`/level/${level}`}>Atelier complet</Link>
-        </div>
-      </header>
+    <main className="zone-shell software-zone-shell grid min-h-screen grid-rows-[auto_1fr] gap-3 p-3">
+      <FloatingActionDock
+        title="Navigation zone"
+        actions={[
+          {
+            id: 'toggle-zone-header',
+            label: showZoneHeader ? 'Masquer navigation' : 'Afficher navigation',
+            onClick: () => setShowZoneHeader((current) => !current),
+            variant: 'secondary',
+            hint: 'Afficher ou masquer les controles de navigation',
+          },
+          {
+            id: 'open-navigation-target',
+            label: `Aller ${nextZoneLabel}`,
+            onClick: () => navigate(`/level/${level}/zone/${nextZone}`),
+            hint: 'Navigation recommandee selon les mesures',
+          },
+          {
+            id: 'open-schema-elec',
+            label: 'Schema elec',
+            onClick: () => navigate(`/level/${level}/zone/schema-elec`),
+            hint: 'Acces rapide au schema electrique',
+          },
+          {
+            id: 'back-workshop',
+            label: 'Atelier complet',
+            onClick: () => navigate(`/level/${level}`),
+            variant: 'primary',
+            hint: 'Revenir a la vue atelier complete',
+          },
+        ]}
+      />
+
+      {showZoneHeader && (
+        <header className="zone-topbar">
+          <div>
+            <h1>{zoneLabel[safeZoneId] ?? 'Zone technique'}</h1>
+            <p>{definition.model} - Page dediee a une seule vue technique</p>
+          </div>
+          <div className="zone-nav-buttons">
+            <DsTabs
+              items={[
+                { id: 'meuble', label: 'Meuble' },
+                { id: 'schema-frigo', label: 'Schema frigo' },
+                { id: 'schema-elec', label: 'Schema elec' },
+                { id: 'regulateur', label: 'Regulateur' },
+              ]}
+              activeId={safeZoneId}
+              onChange={(id) => navigate(`/level/${level}/zone/${id}`)}
+            />
+            <DsButton to={`/level/${level}`}>Atelier complet</DsButton>
+          </div>
+        </header>
+      )}
 
       {!isKnownZone(zoneId) && (
         <article className="schema-card">
@@ -113,75 +150,29 @@ export function ZoneScreen() {
       )}
 
       {safeZoneId === 'meuble' && (
-        <section className="zone-content-grid meuble-grid">
-          <article className="zone-scene-card">
-            <img src="/assets/scenes/meuble-positif-page.png" alt="Meuble positif" />
-            <button
-              type="button"
-              className="zone-hidden-hotspot meuble-scene-hotspot"
-              onClick={() => setShowMeubleMenu((current) => !current)}
-              aria-label="Ouvrir le menu du meuble"
-            >
-              Ouvrir menu meuble
-            </button>
-          </article>
-
-          <article className="schema-card meuble-menu-card">
-            <header>
-              <h3>Menu meuble</h3>
-              <p>Cliquer sur le meuble dans l image pour afficher ce menu.</p>
-            </header>
-            <button
-              type="button"
-              className="meuble-menu-toggle"
-              onClick={() => setShowMeubleMenu((current) => !current)}
-            >
-              {showMeubleMenu ? 'Masquer menu' : 'Afficher menu'}
-            </button>
-            {showMeubleMenu && (
-              <div className="meuble-menu-actions">
-                <button type="button" onClick={() => navigate(`/level/${level}/zone/schema-frigo`)}>
-                  Schema frigo
-                </button>
-                <button type="button" onClick={() => navigate(`/level/${level}/zone/schema-elec`)}>
-                  Schema elec
-                </button>
-                <button type="button" onClick={() => navigate(`/level/${level}/zone/regulateur`)}>
-                  Regulateur
-                </button>
-              </div>
-            )}
-
-            {showAdvanced && (
-              <div className="diagram-inspector compact">
-                {Object.entries(runtime.components).slice(0, 8).map(([id, state]) => (
-                  <span key={id}>{id}: {state.running ? 'ON' : 'OFF'} / {state.powered ? 'alim' : 'off'}</span>
-                ))}
-              </div>
-            )}
-
-            {!showMeubleMenu && <p className="meuble-hint">Astuce: cliquez sur le meuble pour ouvrir le menu.</p>}
-            {showMeubleMenu && <p className="meuble-hint is-active">Menu meuble actif. Choisissez la vue technique.</p>}
-          </article>
-
-          <MissionGuidePanel installation={definition} runtime={runtime} />
-          {showAdvanced && <ProcessPanel runtime={runtime} />}
-        </section>
+        <ExplodedMeubleView
+          model={definition.model}
+          setpoint={runtime.regulator.setpoint}
+          boxTemp={runtime.thermo.boxTemp}
+          alarmsCount={runtime.alarms.length}
+          electricalPower={runtime.thermo.electricalPower}
+          airFlowM3h={airFlowM3h}
+          condenserApproach={condenserApproach}
+          onOpenFrigo={() => navigate(`/level/${level}/zone/schema-frigo`)}
+          onOpenElec={() => navigate(`/level/${level}/zone/schema-elec`)}
+          onOpenRegulator={() => navigate(`/level/${level}/zone/regulateur`)}
+        />
       )}
 
       {safeZoneId === 'schema-frigo' && (
         <section className="zone-content-grid">
           <article className="schema-card">
             <header>
-              <h3>Schema frigorifique reel</h3>
-              <p>Groupe loge complet et cliquable</p>
+              <h3>Schema frigorifique simplifie</h3>
+              <p>Schema statique: composants cliquables et informations par menu deroulant.</p>
             </header>
-            <RefrigerationDiagram installation={definition} runtime={runtime} />
+            <SimpleLearningSchema installation={definition} mode="schema-frigo" />
           </article>
-          <MissionGuidePanel installation={definition} runtime={runtime} />
-          {showAdvanced && <ProcessPanel runtime={runtime} />}
-          {showAdvanced && <RefrigerationSchematic installation={definition} runtime={runtime} />}
-          {showAdvanced && <PropertiesPanel runtime={runtime} />}
         </section>
       )}
 
@@ -189,28 +180,20 @@ export function ZoneScreen() {
         <section className="zone-content-grid">
           <article className="schema-card">
             <header>
-              <h3>Schema electrique reel</h3>
-              <p>Prise de tension point a point avec procedure guidee</p>
+              <h3>Schema electrique simplifie</h3>
+              <p>Schema statique: composants cliquables et informations par menu deroulant.</p>
             </header>
-            <ElectricalDiagram runtime={runtime} />
+            <SimpleLearningSchema installation={definition} mode="schema-elec" />
           </article>
-          <MissionGuidePanel installation={definition} runtime={runtime} />
-          {showAdvanced && <ProcessPanel runtime={runtime} />}
-          {showAdvanced && <ElectricalSchematic installation={definition} runtime={runtime} />}
-          {showAdvanced && <AlarmPanel runtime={runtime} />}
         </section>
       )}
 
       {safeZoneId === 'regulateur' && (
-        <section className="zone-content-grid">
-          <RegulatorPanel installation={definition} runtime={runtime} />
-          <MissionGuidePanel installation={definition} runtime={runtime} />
-          {showAdvanced && <ProcessPanel runtime={runtime} />}
-          {showAdvanced && <AlarmPanel runtime={runtime} />}
-          <article className="zone-scene-card">
-            <img src={bg} alt={definition.model} />
-          </article>
-        </section>
+        <RegulatorPage
+          installation={definition}
+          runtime={runtime}
+          onBack={() => navigate(`/level/${level}`)}
+        />
       )}
     </main>
   )

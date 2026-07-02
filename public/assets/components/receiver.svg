@@ -1,0 +1,8 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <rect width="800" height="520" rx="28" fill="#0b2034"/>
+  <ellipse cx="400" cy="255" rx="165" ry="122" fill="#195683" stroke="#9de1ff" stroke-width="8"/>
+  <ellipse cx="400" cy="255" rx="110" ry="78" fill="#0f3555" stroke="#b8ebff" stroke-width="6"/>
+  <rect x="228" y="240" width="42" height="28" rx="6" fill="#9edfff"/>
+  <rect x="530" y="240" width="42" height="28" rx="6" fill="#9edfff"/>
+  <text x="400" y="468" text-anchor="middle" font-family="Rajdhani, Arial" font-size="44" fill="#def4ff">RESERVOIR LIQUIDE</text>
+</svg>

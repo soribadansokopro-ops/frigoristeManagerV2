@@ -1,17 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap');
+@import "tailwindcss";
+
 :root {
-  --bg-0: #111827;
-  --bg-1: #1f2937;
-  --bg-2: #273549;
-  --panel: #1f2937;
-  --panel-soft: #273549;
-  --line: #334155;
-  --line-glow: #3b82f6;
-  --text-main: #f8fafc;
-  --text-soft: #94a3b8;
-  --cyan: #3b82f6;
-  --green: #22c55e;
-  --orange: #f59e0b;
-  --red: #ef4444;
+  --bg-0: #020911;
+  --bg-1: #071426;
+  --bg-2: #0b1f39;
+  --panel: #071528;
+  --panel-soft: #0d2541;
+  --line: #1d4b75;
+  --line-glow: #2eaef2;
+  --text-main: #e8f3ff;
+  --text-soft: #8ba7c2;
+  --cyan: #37b7ff;
+  --green: #2cd67d;
+  --orange: #e9a53d;
+  --red: #ff4f4f;
 }
 
 * {
@@ -26,12 +29,13 @@ body,
 }
 
 body {
-  font-family: 'Bahnschrift', 'Segoe UI', Tahoma, sans-serif;
+  font-family: 'Barlow Condensed', 'Segoe UI', Tahoma, sans-serif;
+  letter-spacing: 0.02em;
   color: var(--text-main);
   background:
-    radial-gradient(circle at 18% 16%, rgba(59, 130, 246, 0.16), transparent 32%),
-    radial-gradient(circle at 86% 8%, rgba(34, 197, 94, 0.08), transparent 28%),
-    linear-gradient(160deg, var(--bg-0), var(--bg-1) 52%, var(--bg-2));
+    radial-gradient(circle at 18% 16%, rgba(55, 183, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 86% 8%, rgba(37, 124, 218, 0.11), transparent 31%),
+    linear-gradient(160deg, var(--bg-0), var(--bg-1) 54%, var(--bg-2));
 }
 
 a {
@@ -252,14 +256,15 @@ a:hover {
 
 .full-screen-scene {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100dvh;
   border: none;
   border-radius: 0;
 }
 
 .full-screen-scene img {
-  min-height: 100vh;
-  max-height: none;
+  width: 100%;
+  height: 100dvh;
+  object-fit: cover;
 }
 
 .scene-caption-overlay {
@@ -316,7 +321,7 @@ a:hover {
 
 .interactive-scene img {
   width: 100%;
-  max-height: 360px;
+  max-height: clamp(360px, 58vh, 760px);
   object-fit: cover;
   display: block;
 }
@@ -324,32 +329,6 @@ a:hover {
 .interactive-scene figcaption {
   padding: 10px 12px;
   color: var(--text-soft);
-}
-
-.scene-overlay-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.scene-hotspot-shape {
-  fill: rgba(120, 227, 255, 0.01);
-  stroke: transparent;
-  stroke-width: 2;
-  cursor: pointer;
-}
-
-.scene-overlay-svg.debug-hotspot .scene-hotspot-shape {
-  fill: rgba(120, 227, 255, 0.06);
-  stroke: rgba(120, 227, 255, 0.98);
-  stroke-dasharray: 14 8;
-}
-
-.scene-overlay-svg.debug-hotspot .scene-hotspot-shape:hover,
-.scene-overlay-svg.debug-hotspot .scene-hotspot-shape:focus-visible {
-  fill: transparent;
-  stroke: rgba(156, 228, 255, 0.9);
 }
 
 .mission-flow-panel h1 {
@@ -716,11 +695,78 @@ a:hover {
   gap: 8px;
 }
 
+.app-screen {
+  overflow: hidden;
+}
+
+.app-shell {
+  min-height: calc(100vh - 40px);
+  grid-template-rows: auto auto 1fr;
+  align-content: start;
+  overflow: hidden;
+}
+
+.app-scroll-y {
+  min-height: 0;
+  overflow: auto;
+  align-content: start;
+  padding-right: 2px;
+}
+
 .game-main {
   padding: 14px;
   display: grid;
   grid-template-rows: auto auto 1fr;
   gap: 12px;
+}
+
+.level-main-compact {
+  min-height: calc(100dvh - 26px);
+  align-content: start;
+  overflow: hidden;
+}
+
+.level-focus-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 10px;
+  min-height: clamp(360px, 56vh, 680px);
+}
+
+.level-scene-main {
+  height: 100%;
+  min-height: clamp(320px, 52vh, 640px);
+}
+
+.level-scene-main img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  max-height: none;
+}
+
+.level-quick-panel {
+  border: 1px solid #2a6ea6;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(10, 36, 67, 0.92), rgba(4, 16, 30, 0.9));
+  padding: 10px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.level-quick-panel h3 {
+  margin: 0;
+}
+
+.level-quick-panel p {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.level-quick-actions {
+  display: grid;
+  gap: 8px;
 }
 
 .hud-row {
@@ -871,7 +917,7 @@ a:hover {
   background: rgba(7, 28, 52, 0.92);
   padding: 8px;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -1300,7 +1346,7 @@ a:hover {
 }
 
 .zone-shell {
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 14px;
   display: grid;
   grid-template-rows: auto 1fr;
@@ -1387,9 +1433,9 @@ a:hover {
 
 .zone-scene-card img {
   width: 100%;
-  height: 100%;
-  max-height: 520px;
-  object-fit: cover;
+  height: auto;
+  max-height: clamp(280px, 55vh, 680px);
+  object-fit: contain;
   display: block;
 }
 
@@ -1427,9 +1473,48 @@ a:hover {
   grid-template-columns: 1.2fr 1fr;
 }
 
+.meuble-scene-enhanced {
+  min-height: 420px;
+}
+
 .meuble-menu-card {
   display: grid;
   gap: 10px;
+}
+
+.meuble-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.meuble-next-action {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #2f79b6;
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(9, 33, 60, 0.84);
+}
+
+.meuble-next-action strong {
+  color: #d9f3ff;
+}
+
+.meuble-next-action p {
+  margin: 0;
+  color: #b8d4eb;
+}
+
+.meuble-next-action button,
+.meuble-shortcuts-grid button {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid #2a73aa;
+  background: linear-gradient(180deg, #175893, #0f3f6e 56%, #0b2f54);
+  color: #d9f2ff;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .meuble-menu-actions {
@@ -1466,6 +1551,50 @@ a:hover {
 
 .meuble-hint.is-active {
   color: var(--green);
+}
+
+.meuble-checklist-card,
+.meuble-shortcuts-card {
+  display: grid;
+  gap: 10px;
+}
+
+.meuble-checklist {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.meuble-checklist li {
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.meuble-checklist li button {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #2a73aa;
+  background: linear-gradient(180deg, #175893, #0f3f6e 56%, #0b2f54);
+  color: #d9f2ff;
+  cursor: pointer;
+}
+
+.meuble-checklist li.ok {
+  color: #a9f5ce;
+}
+
+.meuble-checklist li.warn {
+  color: #ffe0ad;
+}
+
+.meuble-shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .diagram-inspector.compact {
@@ -1512,6 +1641,268 @@ a:hover {
 .quick-zone-card p {
   margin: 0;
   color: var(--text-soft);
+}
+
+.mission-objective-panel {
+  border: 1px solid #1f5788;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(6, 29, 53, 0.92), rgba(4, 16, 30, 0.9));
+  padding: 10px 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.mission-objective-panel header h3 {
+  margin: 0;
+}
+
+.mission-objective-panel header p {
+  margin: 4px 0 0;
+  color: var(--text-soft);
+}
+
+.mission-objective-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mission-objective-grid span {
+  border: 1px solid #2b5f91;
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(9, 29, 52, 0.72);
+  color: var(--text-soft);
+  font-size: 13px;
+}
+
+.mission-objective-grid span.ok {
+  border-color: #2f9362;
+  color: #a9f5ce;
+}
+
+.mission-objective-grid span.pending {
+  border-color: #2f79b6;
+  color: #d6edff;
+}
+
+.mission-protocol-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mission-protocol-step {
+  border: 1px solid #2b5f91;
+  border-radius: 8px;
+  padding: 9px;
+  background: rgba(9, 29, 52, 0.72);
+  display: grid;
+  gap: 6px;
+}
+
+.mission-protocol-step strong {
+  color: #def4ff;
+}
+
+.mission-protocol-step p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 13px;
+}
+
+.mission-protocol-step.is-done {
+  border-color: #2f9362;
+  background: linear-gradient(180deg, rgba(9, 46, 36, 0.76), rgba(6, 27, 22, 0.74));
+}
+
+.mission-protocol-step.is-active {
+  border-color: #2f79b6;
+}
+
+.mission-protocol-step.is-pending {
+  opacity: 0.9;
+}
+
+.mission-technical-panel {
+  border: 1px solid #1f5788;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(6, 29, 53, 0.92), rgba(4, 16, 30, 0.9));
+  padding: 10px 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.mission-technical-panel h3 {
+  margin: 0;
+}
+
+.mission-technical-panel p {
+  margin: 4px 0 0;
+  color: var(--text-soft);
+}
+
+.mission-technical-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mission-technical-grid article {
+  border: 1px solid #2b5f91;
+  border-radius: 8px;
+  padding: 9px;
+  background: rgba(9, 29, 52, 0.72);
+  display: grid;
+  gap: 5px;
+}
+
+.mission-technical-grid article small {
+  color: #8ba7c2;
+}
+
+.mission-technical-grid article strong {
+  color: #d6edff;
+}
+
+.mission-technical-grid article strong.ok {
+  color: #a9f5ce;
+}
+
+.mission-technical-grid article strong.warn {
+  color: #ffe0ad;
+}
+
+.simple-schema-wrap {
+  display: grid;
+  gap: 12px;
+}
+
+.simple-schema-canvas {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #1f5788;
+  background: rgba(6, 23, 42, 0.88);
+}
+
+.simple-schema-link {
+  stroke: #2f79b6;
+  stroke-width: 3;
+}
+
+.simple-schema-node {
+  fill: rgba(9, 38, 68, 0.98);
+  stroke: #2f79b6;
+  stroke-width: 2;
+  cursor: pointer;
+}
+
+.simple-schema-node.is-selected {
+  stroke: #47c0ff;
+  filter: drop-shadow(0 0 8px rgba(71, 192, 255, 0.35));
+}
+
+.simple-schema-node-title {
+  fill: #e8f3ff;
+  font-size: 13px;
+}
+
+.simple-schema-node-kind {
+  fill: #8ba7c2;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.simple-schema-controls {
+  display: grid;
+  gap: 6px;
+}
+
+.simple-schema-controls label {
+  color: #8ba7c2;
+  font-size: 13px;
+}
+
+.simple-schema-controls select {
+  border: 1px solid #2a73aa;
+  border-radius: 8px;
+  background: rgba(6, 23, 42, 0.88);
+  color: #e8f3ff;
+  padding: 8px 10px;
+}
+
+.simple-schema-info {
+  border: 1px solid #1f5788;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(6, 29, 53, 0.92), rgba(4, 16, 30, 0.9));
+  padding: 10px 12px;
+}
+
+.simple-schema-info h4 {
+  margin: 0;
+}
+
+.simple-schema-info p {
+  margin: 8px 0 0;
+  color: #b8d4eb;
+}
+
+.simple-schema-info-media {
+  margin: 10px 0 0;
+  border: 1px solid #1f5788;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(5, 22, 40, 0.9);
+}
+
+.simple-schema-info-media img {
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+  display: block;
+}
+
+.component-gallery-panel {
+  width: min(1240px, 96vw);
+}
+
+.component-gallery-header p {
+  color: #b8d4eb;
+}
+
+.component-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.component-card {
+  border: 1px solid #2a6ea6;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(9, 33, 60, 0.9), rgba(7, 24, 45, 0.88));
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.component-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #2b5f91;
+  background: rgba(3, 13, 24, 0.72);
+}
+
+.component-card h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.component-card p {
+  margin: 0;
+  color: #b8d4eb;
 }
 
 .fault-select-shell {
@@ -1694,6 +2085,19 @@ a:hover {
   color: var(--text-soft);
 }
 
+.mission-tech-brief {
+  border: 1px solid #2a5f8f;
+  border-radius: 8px;
+  background: rgba(8, 29, 52, 0.72);
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.mission-tech-brief strong {
+  color: #d9f3ff;
+}
+
 .mission-board-card.is-locked {
   opacity: 0.7;
 }
@@ -1781,6 +2185,537 @@ body.ui-reduced-motion *::after {
 .software-zone-shell::before {
   animation: hud-flicker 2.4s ease-in-out infinite;
 }
+.floating-action-dock {
+  position: sticky;
+  top: 10px;
+  z-index: 20;
+  display: grid;
+  gap: 8px;
+  align-items: start;
+  justify-items: start;
+  border: 1px solid #1f5788;
+  border-radius: 10px;
+  padding: 8px;
+  background: linear-gradient(180deg, rgba(4, 20, 38, 0.84), rgba(2, 12, 24, 0.82));
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+}
+.floating-action-dock strong {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8ecfff;
+}
+.floating-action-dock-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.floating-action-dock-grid .ds-button {
+  min-height: 34px;
+}
+.mission-objective-inline-compact {
+  padding: 8px 10px;
+  gap: 8px;
+}
+.mission-objective-inline-compact header p {
+  font-size: 12px;
+}
+.mission-objective-inline-compact .mission-objective-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .floating-action-dock {
+    position: static;
+  }
+
+  .floating-action-dock-grid {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .level-focus-grid {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .level-scene-main {
+    min-height: 46vh;
+  }
+
+  .app-shell {
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .app-scroll-y {
+    overflow: visible;
+  }
+}
+
+.fm-home-reference {
+  background:
+    radial-gradient(circle at 10% 8%, rgba(45, 171, 250, 0.2), transparent 28%),
+    linear-gradient(145deg, #01070f, #07162a 52%, #0a223d);
+}
+
+.fm-home-reference .home-photo-bg {
+  filter: saturate(1.05) contrast(1.08) brightness(0.22);
+}
+
+.home-software-sidebar,
+.home-software-workspace,
+.software-level-shell .game-sidebar,
+.software-level-shell .game-main,
+.zone-topbar,
+.schema-card,
+.viewport-card,
+.info-page-panel,
+.fault-select-panel,
+.zone-scene-card,
+.quick-zone-card {
+  border-color: #1f5788;
+  box-shadow:
+    0 0 0 1px rgba(38, 122, 183, 0.28) inset,
+    0 16px 32px rgba(0, 0, 0, 0.42);
+}
+
+.software-logo-block h1,
+.brand-block h1,
+.zone-topbar h1,
+.home-panel h1,
+.workspace-hero-card h2,
+.info-page-header h1,
+.fault-select-panel h1 {
+  font-family: 'Rajdhani', 'Barlow Condensed', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.software-logo-block strong {
+  color: #1ea6ff;
+}
+
+.software-main-menu a,
+.software-main-menu span {
+  text-transform: uppercase;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  border-color: #215887;
+  background: linear-gradient(180deg, rgba(6, 32, 58, 0.86), rgba(4, 16, 31, 0.88));
+}
+
+.software-main-menu a.active,
+.software-main-menu span.active {
+  border-color: #2aaef6;
+  background: linear-gradient(180deg, rgba(16, 88, 153, 0.92), rgba(13, 52, 94, 0.92));
+}
+
+.workspace-topbar {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.workspace-topbar article,
+.hud-row article,
+.ds-panel {
+  background: linear-gradient(180deg, rgba(6, 29, 53, 0.93), rgba(4, 17, 33, 0.92));
+  border-color: #1f5685;
+}
+
+.workspace-main-grid {
+  grid-template-columns: 1.35fr 1fr;
+}
+
+.workshop-scene-card {
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  min-height: 560px;
+}
+
+.workshop-scene-card > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: brightness(0.78) saturate(0.96);
+}
+
+.workspace-scene-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 18px;
+  background: linear-gradient(180deg, transparent, rgba(2, 11, 22, 0.92) 54%);
+}
+
+.workspace-levels-card .level-list {
+  max-height: 58vh;
+}
+
+.workspace-levels-card {
+  background:
+    linear-gradient(180deg, rgba(8, 33, 58, 0.94), rgba(4, 16, 30, 0.94)),
+    repeating-linear-gradient(90deg, rgba(130, 191, 239, 0.02), rgba(130, 191, 239, 0.02) 2px, transparent 2px, transparent 22px);
+}
+
+.workspace-levels-card header h3 {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.workspace-levels-card .level-card {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.workspace-levels-card .level-card-content img {
+  width: 96px;
+  height: 62px;
+}
+
+.intervention-actions {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.intervention-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1px solid #2d6ea1;
+  background: rgba(10, 43, 74, 0.68);
+  color: #d6edff;
+}
+
+.intervention-status.urgent {
+  border-color: #b7483f;
+  background: rgba(129, 37, 36, 0.8);
+  color: #ffd6d1;
+}
+
+.intervention-status.progress {
+  border-color: #a77b30;
+  background: rgba(130, 86, 24, 0.82);
+  color: #ffe0ad;
+}
+
+.intervention-status.planned {
+  border-color: #2f79b6;
+  background: rgba(16, 71, 121, 0.78);
+  color: #d4ecff;
+}
+
+.news-card-inline {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.news-card-inline img {
+  width: 92px;
+  height: 66px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #2b628f;
+}
+
+.news-card-inline figcaption p,
+.news-card-inline figcaption small {
+  margin: 0;
+}
+
+.news-card-inline figcaption p {
+  color: #34bcff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.home-software-sidebar,
+.home-software-workspace {
+  position: relative;
+}
+
+.home-software-sidebar::before,
+.home-software-workspace::before,
+.software-level-shell .game-sidebar::before,
+.software-level-shell .game-main::before,
+.zone-topbar::before,
+.schema-card::before,
+.viewport-card::before,
+.fault-select-panel::before,
+.info-page-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(106, 199, 255, 0.08), transparent 35%, transparent 65%, rgba(79, 159, 219, 0.06));
+}
+
+.home-software-sidebar > *,
+.home-software-workspace > *,
+.software-level-shell .game-sidebar > *,
+.software-level-shell .game-main > *,
+.zone-topbar > *,
+.schema-card > *,
+.viewport-card > *,
+.fault-select-panel > *,
+.info-page-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.mission-flow-actions a {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #2d5e94;
+  background: linear-gradient(180deg, #175893, #0f3f6e 56%, #0b2f54);
+  color: #d9f2ff;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mission-flow-actions a:hover {
+  border-color: #47c0ff;
+  box-shadow:
+    0 0 0 1px rgba(71, 192, 255, 0.35) inset,
+    0 0 15px rgba(42, 164, 239, 0.25);
+}
+
+.level-card,
+.mission-board-card,
+.training-card,
+.settings-card,
+.fault-choice-card {
+  border-color: #225b8b;
+  background: linear-gradient(180deg, rgba(8, 35, 63, 0.88), rgba(5, 19, 37, 0.88));
+}
+
+.level-card h2,
+.mission-board-card h2,
+.training-card h2,
+.settings-card h2,
+.schema-card h3,
+.mission-card h2,
+.mission-card h3 {
+  font-family: 'Rajdhani', 'Barlow Condensed', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.level-card button,
+.level-card a,
+.movement-grid button,
+.measure-btn,
+.fault-zone button,
+.footer-actions button,
+.footer-actions a,
+.zone-nav-buttons button,
+.zone-nav-buttons a,
+.zone-menu-inline button,
+.process-tabs button,
+.regulator-actions button,
+.electrical-toolbox-row button,
+.mission-flow-actions button,
+.loading-shell button,
+.info-page-actions a,
+.settings-card button,
+.mission-board-card a,
+.mission-board-card button,
+.fault-select-footer a,
+.meuble-menu-actions button,
+.quick-zone-card button,
+.meuble-menu-toggle {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-color: #2a73aa;
+  background: linear-gradient(180deg, #175893, #0f3f6e 56%, #0b2f54);
+}
+
+.level-card button:hover,
+.level-card a:hover,
+.movement-grid button:hover,
+.measure-btn:hover,
+.fault-zone button:hover,
+.footer-actions button:hover,
+.footer-actions a:hover,
+.zone-nav-buttons button:hover,
+.zone-nav-buttons a:hover,
+.zone-menu-inline button:hover,
+.process-tabs button:hover,
+.regulator-actions button:hover,
+.electrical-toolbox-row button:hover,
+.mission-flow-actions button:hover,
+.loading-shell button:hover,
+.info-page-actions a:hover,
+.settings-card button:hover,
+.mission-board-card a:hover,
+.mission-board-card button:hover,
+.fault-select-footer a:hover,
+.meuble-menu-actions button:hover,
+.quick-zone-card button:hover,
+.meuble-menu-toggle:hover {
+  border-color: #47c0ff;
+  box-shadow:
+    0 0 0 1px rgba(71, 192, 255, 0.35) inset,
+    0 0 15px rgba(42, 164, 239, 0.25);
+}
+
+.software-level-shell {
+  background-image:
+    linear-gradient(180deg, rgba(2, 10, 20, 0.92), rgba(4, 14, 28, 0.95)),
+    url('/assets/background/reference-workshop-dashboard.png');
+  background-position: center;
+  background-size: cover;
+}
+
+.software-level-shell .game-main {
+  backdrop-filter: blur(2px);
+}
+
+.zone-menu-inline {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.zone-menu-inline button {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hud-row article {
+  min-height: 72px;
+}
+
+.hud-row strong,
+.workspace-topbar strong,
+.workspace-topbar .ds-panel strong {
+  font-family: 'Rajdhani', 'Barlow Condensed', sans-serif;
+  font-size: 27px;
+  letter-spacing: 0.02em;
+}
+
+.hud-row small,
+.workspace-topbar small,
+.workspace-topbar .ds-panel small {
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.schema-card,
+.viewport-card,
+.zone-scene-card,
+.fault-select-panel,
+.info-page-panel,
+.mission-visual-card,
+.tool-panel,
+.reading-box,
+.fault-zone,
+.mission-card,
+.movement-card,
+.brand-block,
+.zone-topbar,
+.home-software-sidebar,
+.home-software-workspace {
+  border-radius: 10px;
+}
+
+.level-card,
+.mission-board-card,
+.training-card,
+.settings-card,
+.fault-choice-card,
+.quick-zone-card {
+  border-radius: 9px;
+}
+
+.scene-caption-overlay h1,
+.mission-flow-panel h1 {
+  text-transform: uppercase;
+  font-family: 'Rajdhani', 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.03em;
+}
+
+.software-zone-shell,
+.info-page-shell,
+.fault-select-shell {
+  background-image:
+    linear-gradient(180deg, rgba(2, 10, 20, 0.94), rgba(5, 18, 36, 0.95)),
+    url('/assets/background/reference-workshop-dashboard.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.mission-flow-shell {
+  background-image:
+    linear-gradient(180deg, rgba(2, 10, 20, 0.82), rgba(5, 18, 36, 0.86)),
+    url('/assets/background/reference-home-dashboard.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.zone-menu-inline,
+.zone-topbar,
+.schema-card,
+.viewport-card,
+.tool-panel,
+.mission-card,
+.movement-card,
+.fault-zone,
+.reading-box,
+.brand-block,
+.mission-visual-card {
+  background: linear-gradient(180deg, rgba(6, 29, 53, 0.93), rgba(4, 16, 30, 0.92));
+}
+
+.zone-content-grid,
+.mission-board-grid,
+.training-grid,
+.settings-grid,
+.fault-select-grid {
+  gap: 14px;
+}
+
+.mission-flow-actions {
+  flex-wrap: wrap;
+}
+
+.scene-caption-overlay,
+.mission-complete-banner,
+.active-fault,
+.electrical-procedure-card,
+.diagram-inspector,
+.electrical-toolbox-row,
+.electrical-interpretation-box,
+.regulator-display,
+.process-grid span,
+.schema-values.dense span,
+.electrical-metrics span {
+  border-color: #1e5683;
+  background: linear-gradient(180deg, rgba(6, 29, 53, 0.92), rgba(4, 16, 30, 0.9));
+}
+
+@media (max-width: 1180px) {
+  .workspace-topbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workshop-scene-card {
+    min-height: 420px;
+  }
+}
 
 @media (max-width: 1180px) {
   .software-home-shell {
@@ -1798,6 +2733,10 @@ body.ui-reduced-motion *::after {
   .mission-board-grid,
   .training-grid,
   .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .component-gallery-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1842,6 +2781,11 @@ body.ui-reduced-motion *::after {
     grid-template-columns: 1fr;
   }
 
+  .mission-protocol-grid,
+  .mission-technical-grid {
+    grid-template-columns: 1fr;
+  }
+
   .electrical-procedure-list li {
     grid-template-columns: 1fr;
   }
@@ -1858,6 +2802,17 @@ body.ui-reduced-motion *::after {
     grid-template-columns: 1fr;
   }
 
+  .meuble-status-grid,
+  .meuble-shortcuts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .meuble-checklist li {
+    display: grid;
+    gap: 6px;
+    justify-content: start;
+  }
+
   .quick-zone-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1870,6 +2825,145 @@ body.ui-reduced-motion *::after {
     grid-template-columns: 1fr;
   }
 
+  .zone-menu-inline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Global Game HUD pass */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(173, 224, 255, 0.038) 0,
+      rgba(173, 224, 255, 0.038) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+  mix-blend-mode: screen;
+  opacity: 0.22;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 56%, rgba(1, 8, 16, 0.62) 100%),
+    radial-gradient(circle at 8% 0%, rgba(54, 173, 255, 0.16), transparent 30%),
+    radial-gradient(circle at 92% 100%, rgba(30, 121, 197, 0.18), transparent 36%);
+}
+
+#root,
+.app-screen,
+.game-shell,
+.software-home-shell,
+.software-level-shell,
+.software-zone-shell,
+.mission-flow-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.zone-menu-inline {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid #2f7db9;
+  box-shadow: 0 0 0 1px rgba(74, 167, 230, 0.25) inset, 0 14px 26px rgba(0, 0, 0, 0.35);
+}
+
+.floating-action-dock,
+.zone-topbar,
+.schema-card,
+.viewport-card,
+.level-quick-panel,
+.mission-card,
+.movement-card,
+.tool-panel,
+.brand-block,
+.game-sidebar,
+.game-main {
+  border-color: #2a6fa4;
+  box-shadow:
+    0 0 0 1px rgba(62, 154, 214, 0.24) inset,
+    0 0 16px rgba(35, 139, 207, 0.14),
+    0 14px 30px rgba(0, 0, 0, 0.42);
+}
+
+.schema-card header,
+.zone-topbar,
+.mission-card,
+.level-quick-panel,
+.brand-block,
+.floating-action-dock {
+  position: relative;
+}
+
+.schema-card header::before,
+.zone-topbar::before,
+.mission-card::before,
+.level-quick-panel::before,
+.brand-block::before,
+.floating-action-dock::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 8px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(124, 206, 255, 0.75), transparent);
+}
+
+.hud-row article,
+.ds-hud-stat {
+  border-color: #3cb1f8;
+  box-shadow: 0 0 0 1px rgba(72, 183, 255, 0.24) inset, 0 0 18px rgba(43, 154, 230, 0.18);
+}
+
+.hud-row article strong,
+.ds-hud-stat strong {
+  text-shadow: 0 0 12px rgba(110, 203, 255, 0.2);
+}
+
+.mission-flow-panel,
+.scene-caption-overlay {
+  border-color: #2d78b1;
+  box-shadow:
+    0 0 0 1px rgba(69, 162, 220, 0.28) inset,
+    0 18px 38px rgba(0, 0, 0, 0.44);
+}
+
+.level-scene-main,
+.zone-scene-card,
+.interactive-scene,
+.full-screen-scene {
+  background: radial-gradient(circle at 50% 10%, rgba(44, 158, 244, 0.12), rgba(2, 10, 19, 0.48));
+}
+
+.level-scene-main img,
+.zone-scene-card img,
+.interactive-scene img,
+.full-screen-scene img {
+  filter: saturate(1.08) contrast(1.06);
+}
+
+.zone-nav-buttons .ds-tabs,
+.zone-menu-inline .ds-tabs {
+  width: 100%;
+}
+
+.zone-nav-buttons .ds-tab,
+.zone-menu-inline .ds-tab {
+  min-height: 40px;
+}
+
+@media (max-width: 1180px) {
   .zone-menu-inline {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

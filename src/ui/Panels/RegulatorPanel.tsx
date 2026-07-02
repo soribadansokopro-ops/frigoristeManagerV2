@@ -1,5 +1,6 @@
 import { useGameStore } from '../../store/gameStore'
 import type { InstallationDefinition, InstallationRuntime } from '../../types/game'
+import { DsButton } from '../../design-system'
 
 interface RegulatorPanelProps {
   installation: InstallationDefinition
@@ -44,18 +45,12 @@ export function RegulatorPanel({ installation, runtime }: RegulatorPanelProps) {
       </div>
 
       <div className="regulator-actions">
-        <button
-          type="button"
-          onClick={() => setRegulatorFanForcedOff(!fanForcedOff)}
-        >
+        <DsButton onClick={() => setRegulatorFanForcedOff(!fanForcedOff)}>
           {fanForcedOff ? 'Fan Auto' : 'Forcer Fan OFF'}
-        </button>
-        <button
-          type="button"
-          onClick={() => setRegulatorDefrostActive(!defrostRunning)}
-        >
+        </DsButton>
+        <DsButton onClick={() => setRegulatorDefrostActive(!defrostRunning)}>
           {defrostRunning ? 'Arreter degivrage' : 'Lancer degivrage'}
-        </button>
+        </DsButton>
       </div>
 
       <div className="regulator-grid">

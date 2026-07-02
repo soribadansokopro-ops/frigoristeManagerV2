@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { getLevelBackground, getLevelThumbnail } from '../config/visuals'
+import { useEffect, useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { getLevelBackground } from '../config/visuals'
 import { useSimulationTick } from '../hooks/useSimulationTick'
-import { Toolbox } from '../ui/Tools/Toolbox'
-import { GameViewport } from '../ui/GameViewport'
 import { ToolPanel } from '../ui/ToolPanel'
-import { MissionGuidePanel } from '../ui/Panels/MissionGuidePanel'
-import { ProcessPanel } from '../ui/Panels/ProcessPanel'
+import { GameModal } from '../ui/components/GameModal'
+import { FloatingActionDock } from '../ui/components/FloatingActionDock'
 import { useGameStore } from '../store/gameStore'
+import { fallbackMissionClientContext, missionClientContextByLevel } from '../data/missions/missionContext'
+import fx from './LevelScreen.effects.module.css'
+import { DsButton, DsHUDStat, DsMissionCard, DsProgressBar, DsTabs, successBurst } from '../design-system'
 
 const missionLabels = {
   ARRIVEE_SITE: 'Arrivee sur site',
@@ -18,6 +20,15 @@ const missionLabels = {
   TEST_FINAL: 'Test final',
   VALIDATION: 'Intervention validee',
 } as const
+
+type ProtocolStatus = 'pending' | 'active' | 'done'
+
+interface MissionProtocolStep {
+  id: 'electrical' | 'measurement' | 'diagnostic' | 'correction' | 'validation'
+  title: string
+  detail: string
+  status: ProtocolStatus
+}
 
 type MissionJourneyStep = 'INTRO' | 'STORE_ENTRY' | 'STORE_AISLE' | 'DISPLAY_CASE' | 'WORKSHOP'
 
@@ -31,24 +42,24 @@ const missionJourneyOrder: MissionJourneyStep[] = [
 
 const missionJourneyText: Record<Exclude<MissionJourneyStep, 'WORKSHOP'>, { title: string; body: string; action: string }> = {
   INTRO: {
-    title: 'Introduction du probleme',
-    body: 'Le magasin signale une derive de temperature. Vous devez suivre la procedure terrain avant toute mesure.',
+    title: 'Briefing mission',
+    body: 'Le magasin signale une derive de temperature. Suivez la procedure terrain avant toute reparation.',
     action: 'Aller au magasin',
   },
   STORE_ENTRY: {
     title: 'Entree magasin',
-    body: 'Vous arrivez a l entree du magasin. Verifiez le contexte et preparez votre intervention.',
+    body: 'Vous arrivez sur site. Observez le contexte client avant de vous approcher du rayon froid.',
     action: 'Entrer dans le magasin',
   },
   STORE_AISLE: {
-    title: 'Rayon magasin',
-    body: 'Vous avancez vers le rayon froid pour localiser l installation en defaut.',
+    title: 'Rayon froid',
+    body: 'Vous avancez dans le rayon pour localiser le meuble en defaut et preparer vos mesures.',
     action: 'Aller au meuble',
   },
   DISPLAY_CASE: {
-    title: 'Meuble positif',
-    body: 'Vous etes devant le meuble. Ouvrez maintenant la zone de diagnostic pour mesurer et reparer.',
-    action: 'Demarrer le diagnostic',
+    title: 'Devant le meuble',
+    body: 'Le meuble est localise. Vous pouvez maintenant ouvrir l atelier de diagnostic et commencer l intervention.',
+    action: 'Commencer intervention',
   },
 }
 
@@ -73,14 +84,14 @@ const journeySceneConfig: Record<
     image: '/assets/background/store-aisle.png',
     imageAlt: 'Rayon magasin froid',
     hotspotLabel: 'Meuble frigorifique',
-    hotspotHint: 'Appuyer sur le meuble pour aller au diagnostic',
+    hotspotHint: 'Appuyer sur le meuble pour vous approcher',
     hotspotPolygon: '465,215 932,240 925,870 445,855',
   },
   DISPLAY_CASE: {
-    image: '/assets/scenes/meuble-positif-page.png',
+    image: '/assets/scenes/meuble-zone-v2.png',
     imageAlt: 'Meuble positif',
     hotspotLabel: 'Meuble positif',
-    hotspotHint: 'Appuyer sur le meuble pour ouvrir le schema frigo',
+    hotspotHint: 'Appuyer sur le meuble pour ouvrir l atelier',
     hotspotPolygon: '196,175 820,165 870,810 150,820',
   },
 }
@@ -103,12 +114,12 @@ const previousJourneyStep = (step: MissionJourneyStep): MissionJourneyStep => {
 
 export function LevelScreen() {
   const { levelId } = useParams()
-  const [searchParams] = useSearchParams()
   const level = Number(levelId)
   const navigate = useNavigate()
   const [journeyStep, setJourneyStep] = useState<MissionJourneyStep>('INTRO')
-  const [showAdvanced, setShowAdvanced] = useState(false)
-  const appliedFaultPresetRef = useRef<string | null>(null)
+  const [showSidebar, setShowSidebar] = useState(false)
+  const [activeWorkshopPopup, setActiveWorkshopPopup] = useState<'mission' | 'technical' | 'tools' | null>(null)
+  const [activeZoneQuick, setActiveZoneQuick] = useState<'meuble' | 'schema-frigo' | 'schema-elec' | 'regulateur'>('meuble')
   const showHotspotDebug = import.meta.env.DEV
 
   const installations = useGameStore((state) => state.installations)
@@ -116,13 +127,11 @@ export function LevelScreen() {
   const runtime = useGameStore((state) => state.runtime)
   const missionStep = useGameStore((state) => state.missionStep)
   const selectedTool = useGameStore((state) => state.selectedTool)
+  const missionStats = useGameStore((state) => state.missionStats)
   const startLevel = useGameStore((state) => state.startLevel)
   const loadInstallations = useGameStore((state) => state.loadInstallations)
   const tick = useGameStore((state) => state.tick)
-  const movePlayer = useGameStore((state) => state.movePlayer)
-  const setSelectedTool = useGameStore((state) => state.setSelectedTool)
   const validateMission = useGameStore((state) => state.validateMission)
-  const setActiveFaults = useGameStore((state) => state.setActiveFaults)
 
   useEffect(() => {
     if (!isLoaded) {
@@ -149,73 +158,81 @@ export function LevelScreen() {
     [installations, level],
   )
 
-  const definitionKind = definition?.kind ?? 'DISPLAY_CASE_POSITIVE'
-  const definitionId = definition?.id ?? null
-  const sceneBackground = getLevelBackground(definitionKind)
+  const missionContext = missionClientContextByLevel[level] ?? fallbackMissionClientContext
 
-  const journeyAsset = useMemo(() => {
-    if (journeyStep === 'INTRO') {
-      return '/assets/background/home-hangar.png'
-    }
-    if (journeyStep === 'DISPLAY_CASE') {
-      return '/assets/scenes/meuble-positif-page.png'
-    }
-    if (journeyStep === 'STORE_ENTRY' || journeyStep === 'STORE_AISLE') {
-      return journeySceneConfig[journeyStep].image
-    }
-    return getLevelThumbnail(definitionKind)
-  }, [definitionKind, journeyStep])
+  const safeBaseBoxTemp = definition?.base.boxTemp ?? 0
+  const safeHp = runtime?.thermo.hp ?? 0
+  const safeBp = runtime?.thermo.bp ?? 0
+  const safeBoxTemp = runtime?.thermo.boxTemp ?? safeBaseBoxTemp
+  const safeElectricalReady = runtime?.thermo.electricalPower ?? false
+  const safeAlarms = runtime?.alarms ?? []
+  const safeActiveFaultCount = runtime?.activeFaultIds.length ?? 0
+  const safeMeasurements = missionStats?.measurements ?? 0
 
-  useEffect(() => {
-    if (journeyStep !== 'WORKSHOP') {
-      return
-    }
-    if (!Number.isFinite(level) || !isLoaded || installations.length === 0 || !definitionId) {
-      return
-    }
+  const hasActiveFault = safeActiveFaultCount > 0
+  const elapsed = missionStats ? Math.floor(missionStats.elapsedSeconds) : 0
+  const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0')
+  const seconds = (elapsed % 60).toString().padStart(2, '0')
 
-    if (!runtime || runtime.installationId !== definitionId) {
-      startLevel(level)
-    }
-  }, [definitionId, installations.length, isLoaded, journeyStep, level, runtime, startLevel])
+  const objectiveMeasureDone = safeMeasurements >= 2
+  const objectiveRepairDone = safeActiveFaultCount === 0
+  const objectiveStabilityDone = safeBoxTemp <= safeBaseBoxTemp + 1.5
+  const electricalReady = safeElectricalReady
+  const diagnosisStarted = missionStep === 'DIAGNOSTIC' || missionStep === 'REPARATION' || missionStep === 'TEST_FINAL' || missionStep === 'VALIDATION'
 
-  const selectedFaultIds = useMemo(() => {
-    const raw = searchParams.get('faults')
-    if (!raw || !definition) {
-      return [] as string[]
-    }
+  const missionProtocol = useMemo<MissionProtocolStep[]>(() => [
+    {
+      id: 'electrical',
+      title: 'Securite electrique',
+      detail: 'Confirmer la presence alimentation et l etat commande avant mesure avancee.',
+      status: electricalReady ? 'done' : 'active',
+    },
+    {
+      id: 'measurement',
+      title: 'Releve de mesures',
+      detail: `Executer au moins 2 mesures fiables (actuel: ${safeMeasurements}).`,
+      status: objectiveMeasureDone ? 'done' : electricalReady ? 'active' : 'pending',
+    },
+    {
+      id: 'diagnostic',
+      title: 'Hypothese technique',
+      detail: 'Croiser pressions, temperatures, intensites et alarms avant action.',
+      status: diagnosisStarted ? 'done' : objectiveMeasureDone ? 'active' : 'pending',
+    },
+    {
+      id: 'correction',
+      title: 'Correction ciblee',
+      detail: 'Traiter la cause racine et eviter les remplacements au hasard.',
+      status: objectiveRepairDone ? 'done' : diagnosisStarted ? 'active' : 'pending',
+    },
+    {
+      id: 'validation',
+      title: 'Validation thermique',
+      detail: `Stabiliser la temperature proche base (${safeBaseBoxTemp.toFixed(1)} C).`,
+      status: missionStep === 'VALIDATION' ? 'done' : objectiveRepairDone && objectiveStabilityDone ? 'active' : 'pending',
+    },
+  ], [diagnosisStarted, electricalReady, missionStep, objectiveMeasureDone, objectiveRepairDone, objectiveStabilityDone, safeBaseBoxTemp, safeMeasurements])
 
-    const valid = new Set(definition.faults.map((fault) => fault.id))
-    return raw
-      .split(',')
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0 && valid.has(item))
-  }, [definition, searchParams])
-
-  useEffect(() => {
-    if (!runtime || !definition) {
-      return
-    }
-
-    const presetKey = `${definition.id}:${selectedFaultIds.join('|')}`
-    if (appliedFaultPresetRef.current === presetKey) {
-      return
-    }
-
-    setActiveFaults(selectedFaultIds)
-    appliedFaultPresetRef.current = presetKey
-  }, [definition, runtime, selectedFaultIds, setActiveFaults])
+  const protocolCompletion = Math.round((missionProtocol.filter((step) => step.status === 'done').length / missionProtocol.length) * 100)
 
   if (!definition) {
     return (
       <main className="loading-shell">
         <p>Chargement du niveau...</p>
-        <Link to="/">Retour menu</Link>
+        <Link to="/missions">Retour missions</Link>
       </main>
     )
   }
 
-  const hasActiveFault = runtime ? runtime.activeFaultIds.length > 0 : false
+  if (!runtime) {
+    return (
+      <main className="loading-shell">
+        <p>Initialisation du moteur de simulation...</p>
+        <DsButton onClick={() => startLevel(level)}>Reessayer</DsButton>
+        <Link to="/missions">Retour missions</Link>
+      </main>
+    )
+  }
 
   const openZone = (zoneId: 'meuble' | 'schema-frigo' | 'schema-elec' | 'regulateur') => {
     navigate(`/level/${level}/zone/${zoneId}`)
@@ -232,27 +249,26 @@ export function LevelScreen() {
       <main className="mission-flow-shell">
         <figure className="interactive-scene full-screen-scene">
           <img
-            src={interactiveStep ? interactiveStep.image : journeyAsset}
+            src={interactiveStep ? interactiveStep.image : '/assets/background/home-hangar.png'}
             alt={interactiveStep ? interactiveStep.imageAlt : 'Contexte mission'}
           />
 
           {interactiveStep && (
             <svg
               viewBox="0 0 1000 1000"
-              className={`scene-overlay-svg ${showHotspotDebug ? 'debug-hotspot' : ''}`}
+              className={`${fx.sceneOverlaySvg} ${showHotspotDebug ? fx.debugHotspot : ''}`}
               role="img"
               aria-label={interactiveStep.hotspotLabel}
             >
               <polygon
                 points={interactiveStep.hotspotPolygon}
-                className="scene-hotspot-shape"
+                className={fx.sceneHotspotShape}
                 role="button"
                 tabIndex={0}
                 aria-label={interactiveStep.hotspotLabel}
                 onClick={() => {
                   if (journeyStep === 'DISPLAY_CASE') {
-                    setJourneyStep('WORKSHOP')
-                    openZone('meuble')
+                    navigate(`/level/${level}/zone/meuble`)
                     return
                   }
 
@@ -262,8 +278,7 @@ export function LevelScreen() {
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault()
                     if (journeyStep === 'DISPLAY_CASE') {
-                      setJourneyStep('WORKSHOP')
-                      openZone('meuble')
+                      navigate(`/level/${level}/zone/meuble`)
                       return
                     }
 
@@ -278,21 +293,25 @@ export function LevelScreen() {
             <h1>{content.title}</h1>
             <p>{content.body}</p>
             <strong>{interactiveStep ? interactiveStep.hotspotHint : content.action}</strong>
+            <article className={fx.missionClientBrief}>
+              <h3>Contexte client</h3>
+              <p>{missionContext.customer} - {missionContext.role}</p>
+              <p className={fx.customerLine}>"{missionContext.dialogue.customerLine}"</p>
+              <p className={fx.technicianLine}>Technicien: "{missionContext.dialogue.technicianLine}"</p>
+            </article>
             <div className="scene-briefing-grid">
-              <span>Objectif: Localiser la panne reellement</span>
+              <span>Objectif: Identifier la panne sans remplacer au hasard</span>
               <span>Priorite: Securite electrique puis mesures</span>
               <span>Outils: Manifold, multimetre, thermometre</span>
             </div>
             <div className="mission-flow-actions">
-              <button type="button" onClick={() => setJourneyStep(previousJourneyStep(journeyStep))}>
-                Retour
-              </button>
+              <DsButton variant="secondary" onClick={() => setJourneyStep(previousJourneyStep(journeyStep))}>Retour</DsButton>
               {!interactiveStep && (
-                <button type="button" onClick={() => setJourneyStep(nextJourneyStep(journeyStep))}>
+                <DsButton onClick={() => setJourneyStep(nextJourneyStep(journeyStep))}>
                   {content.action}
-                </button>
+                </DsButton>
               )}
-              <Link to="/">Quitter la mission</Link>
+              <Link to="/missions">Quitter mission</Link>
             </div>
           </figcaption>
         </figure>
@@ -300,119 +319,216 @@ export function LevelScreen() {
     )
   }
 
-  if (!runtime) {
-    return (
-      <main className="loading-shell">
-        <p>Initialisation du moteur de simulation...</p>
-        <button type="button" onClick={() => startLevel(level)}>
-          Reessayer
-        </button>
-        <Link to="/">Retour menu</Link>
-      </main>
-    )
-  }
+  const sceneBackground = getLevelBackground(definition.kind)
 
   return (
-    <main className="game-shell software-level-shell">
-      <aside className="game-sidebar">
-        <div className="brand-block">
-          <h1>FRIGORISTE MANAGER</h1>
-          <p>Intervention professionnelle</p>
-        </div>
+    <main className={`game-shell software-level-shell grid min-h-screen ${showSidebar ? 'grid-cols-1 xl:grid-cols-[330px_1fr]' : 'grid-cols-1'}`}>
+      {showSidebar && (
+        <aside className="game-sidebar border-r border-[#1f5788] bg-[linear-gradient(180deg,rgba(6,29,53,.93),rgba(4,16,30,.92))] p-3">
+          <div className="brand-block">
+            <h1>FRIGORISTE MANAGER</h1>
+            <p>Intervention professionnelle</p>
+          </div>
 
-        <div className="mission-card">
-          <h2>{definition.missionTitle}</h2>
-          <p>{definition.missionDescription}</p>
-          <strong>Etape: {missionLabels[missionStep]}</strong>
-        </div>
+          <DsMissionCard
+            title={definition.missionTitle}
+            description={definition.missionDescription}
+            statusLabel={`Etape: ${missionLabels[missionStep]}`}
+            statusTone={hasActiveFault ? 'warn' : 'ok'}
+            progress={protocolCompletion}
+            actions={(
+              <>
+                <DsButton onClick={validateMission}>Valider intervention</DsButton>
+                <DsButton variant="secondary" to="/missions">Retour missions</DsButton>
+              </>
+            )}
+          />
 
-        <figure className="mission-visual-card">
-          <img src={sceneBackground} alt={definition.model} loading="lazy" />
-          <figcaption>{definition.model}</figcaption>
-        </figure>
+          <figure className="mission-visual-card">
+            <img src={sceneBackground} alt={definition.model} loading="lazy" />
+            <figcaption>{definition.model}</figcaption>
+          </figure>
 
-        {showAdvanced && (
-          <>
-            <div className="movement-card">
-              <h3>Deplacement technicien</h3>
-              <div className="movement-grid">
-                <button type="button" onClick={() => movePlayer(0, -18)}>
-                  Haut
-                </button>
-                <button type="button" onClick={() => movePlayer(-18, 0)}>
-                  Gauche
-                </button>
-                <button type="button" onClick={() => movePlayer(18, 0)}>
-                  Droite
-                </button>
-                <button type="button" onClick={() => movePlayer(0, 18)}>
-                  Bas
-                </button>
-              </div>
-            </div>
+          <ToolPanel installation={definition} selectedTool={selectedTool} runtime={runtime} />
 
-            <ToolPanel installation={definition} selectedTool={selectedTool} runtime={runtime} />
-          </>
-        )}
+        </aside>
+      )}
 
-        <div className="footer-actions">
-          <button type="button" onClick={validateMission}>
-            Valider intervention
-          </button>
-          <Link to="/">Retour menu</Link>
-        </div>
-      </aside>
-
-      <section className="game-main">
-        <nav className="zone-menu-inline" aria-label="Menu zones techniques">
-          <button type="button" onClick={() => openZone('meuble')}>Meuble</button>
-          <button type="button" onClick={() => openZone('schema-frigo')}>Schema frigo</button>
-          <button type="button" onClick={() => openZone('schema-elec')}>Schema elec</button>
-          <button type="button" onClick={() => openZone('regulateur')}>Regulateur</button>
-        </nav>
-
-        <header className="hud-row">
-          <article>
-            <small>Installation</small>
-            <strong>{definition.model}</strong>
-          </article>
-          <article>
-            <small>HP / BP</small>
-            <strong>
-              {runtime.thermo.hp.toFixed(1)} bar / {runtime.thermo.bp.toFixed(1)} bar
-            </strong>
-          </article>
-          <article>
-            <small>Temperature enceinte</small>
-            <strong>{runtime.thermo.boxTemp.toFixed(1)} C</strong>
-          </article>
-          <article>
-            <small>Alarme active</small>
-            <strong className={hasActiveFault ? 'warn' : 'ok'}>
-              {hasActiveFault ? runtime.activeFaultIds.length : 0}
-            </strong>
-          </article>
-        </header>
-
-        <div className="zone-nav-buttons">
-          <button type="button" onClick={() => setShowAdvanced((current) => !current)}>
-            {showAdvanced ? 'Mode essentiel' : 'Afficher details'}
-          </button>
-        </div>
-
-        {showAdvanced && <Toolbox selectedTool={selectedTool} onSelect={setSelectedTool} />}
-
-        <GameViewport
-          installation={definition}
-          runtime={runtime}
-          backgroundImage={sceneBackground}
-          onOpenMeuble={() => openZone('meuble')}
+      <section className="game-main level-main-compact grid gap-3 p-3">
+        <FloatingActionDock
+          title="Atelier rapide"
+          actions={[
+            {
+              id: 'sidebar',
+              label: showSidebar ? 'Masquer barre mission' : 'Afficher barre mission',
+              onClick: () => setShowSidebar((current) => !current),
+              variant: 'secondary',
+              hint: 'Bascule la barre mission pour liberer la vue',
+            },
+            {
+              id: 'mission-popup',
+              label: 'Popup mission',
+              onClick: () => setActiveWorkshopPopup('mission'),
+              hint: 'Ouvrir le protocole complet en fenetre',
+            },
+            {
+              id: 'technical-popup',
+              label: 'Popup technique',
+              onClick: () => setActiveWorkshopPopup('technical'),
+              hint: 'Afficher la synthese technique detaillee',
+            },
+            {
+              id: 'tools-popup',
+              label: 'Popup outils',
+              onClick: () => setActiveWorkshopPopup('tools'),
+              hint: 'Acceder aux outils sans couvrir la scene',
+            },
+          ]}
         />
 
-        <section className="zone-content-grid">
-          <MissionGuidePanel installation={definition} runtime={runtime} />
-          {showAdvanced && <ProcessPanel runtime={runtime} />}
+        <div className="zone-menu-inline">
+          <DsTabs
+            items={[
+              { id: 'meuble', label: 'Meuble' },
+              { id: 'schema-frigo', label: 'Schema frigo' },
+              { id: 'schema-elec', label: 'Schema elec' },
+              { id: 'regulateur', label: 'Regulateur' },
+            ]}
+            activeId={activeZoneQuick}
+            onChange={(id) => {
+              const next = id as 'meuble' | 'schema-frigo' | 'schema-elec' | 'regulateur'
+              setActiveZoneQuick(next)
+              openZone(next)
+            }}
+          />
+        </div>
+
+        <header className="hud-row">
+          <DsHUDStat label="Installation" value={definition.model} />
+          <DsHUDStat label="HP / BP" value={`${safeHp.toFixed(1)} / ${safeBp.toFixed(1)} bar`} />
+          <DsHUDStat label="Temperature enceinte" value={`${safeBoxTemp.toFixed(1)} C`} tone={objectiveStabilityDone ? 'ok' : 'warn'} />
+          <DsHUDStat label="Alarme active" value={`${hasActiveFault ? runtime.activeFaultIds.length : 0}`} tone={hasActiveFault ? 'warn' : 'ok'} />
+          <DsHUDStat label="Temps mission" value={`${minutes}:${seconds}`} />
+        </header>
+
+        {missionStep === 'VALIDATION' && (
+          <motion.section
+            className="mission-complete-banner"
+            role="status"
+            aria-live="polite"
+            initial={successBurst.initial}
+            animate={successBurst.animate}
+            transition={successBurst.transition}
+          >
+            <div>
+              <strong>Intervention validee</strong>
+              <p>
+                Panne resolue, temperature stabilisee et intervention techniquement validee.
+              </p>
+              {missionStats && (
+                <p>
+                  Mesures: {missionStats.measurements} | Reparation: {missionStats.repairs}/{missionStats.requiredRepairs} | Temps: {minutes}:{seconds}
+                </p>
+              )}
+            </div>
+            <div className="mission-complete-actions">
+              {level < 6 && <DsButton to={`/level/${level + 1}`}>Niveau suivant</DsButton>}
+              <DsButton to={`/level/${level}`}>Rejouer ce niveau</DsButton>
+            </div>
+          </motion.section>
+        )}
+
+        <section className="level-focus-grid">
+          <article className="zone-scene-card level-scene-main">
+            <img src="/assets/scenes/meuble-zone-v2.png" alt="Meuble en intervention" />
+          </article>
+
+          <aside className="level-quick-panel">
+            <h3>Actions directes</h3>
+            <p>Interface simplifiee: scene centrale + navigation rapide.</p>
+            <DsProgressBar
+              label="Progression protocole"
+              value={protocolCompletion}
+              tone={protocolCompletion >= 75 ? 'ok' : protocolCompletion >= 40 ? 'warn' : 'neutral'}
+            />
+            <div className="level-quick-actions">
+              <DsButton onClick={() => openZone('meuble')}>Vue eclatee meuble</DsButton>
+              <DsButton variant="secondary" onClick={() => openZone('schema-frigo')}>Schema frigo</DsButton>
+              <DsButton variant="secondary" onClick={() => openZone('schema-elec')}>Schema elec</DsButton>
+              <DsButton variant="ghost" onClick={() => openZone('regulateur')}>Regulateur</DsButton>
+              <DsButton variant="success" onClick={validateMission}>Valider intervention</DsButton>
+            </div>
+          </aside>
         </section>
+
+        {activeWorkshopPopup === 'mission' && (
+          <GameModal
+            title="Protocole intervention frigoriste"
+            subtitle="Detail complet des etapes de mission"
+            onClose={() => setActiveWorkshopPopup(null)}
+            footer={<DsButton variant="secondary" onClick={() => setActiveWorkshopPopup(null)}>Fermer</DsButton>}
+          >
+            <section className="mission-objective-panel">
+              <header>
+                <h3>Sequence metier</h3>
+                <p>Suivez la sequence complete pour un diagnostic fiable et une reparation propre.</p>
+              </header>
+              <div className="mission-protocol-grid">
+                {missionProtocol.map((step) => (
+                  <article key={step.id} className={`mission-protocol-step is-${step.status}`}>
+                    <strong>{step.title}</strong>
+                    <p>{step.detail}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          </GameModal>
+        )}
+
+        {activeWorkshopPopup === 'technical' && (
+          <GameModal
+            title="Lecture technique instantanee"
+            subtitle="Synthese terrain en pop-up"
+            onClose={() => setActiveWorkshopPopup(null)}
+            footer={<DsButton variant="secondary" onClick={() => setActiveWorkshopPopup(null)}>Fermer</DsButton>}
+          >
+            <section className="mission-technical-panel">
+              <header>
+                <h3>Lecture technique instantanee</h3>
+                <p>Reperez la cause probable avant d ouvrir les schemas detailles.</p>
+              </header>
+              <div className="mission-technical-grid">
+                <article>
+                  <small>Etat electrique</small>
+                  <strong className={electricalReady ? 'ok' : 'warn'}>{electricalReady ? 'Alimentation OK' : 'Anomalie electrique'}</strong>
+                </article>
+                <article>
+                  <small>Thermique enceinte</small>
+                  <strong className={objectiveStabilityDone ? 'ok' : 'warn'}>{safeBoxTemp.toFixed(1)} C</strong>
+                </article>
+                <article>
+                  <small>Pressions process</small>
+                  <strong>{safeHp.toFixed(1)} / {safeBp.toFixed(1)} bar</strong>
+                </article>
+                <article>
+                  <small>Alarmes</small>
+                  <strong className={hasActiveFault ? 'warn' : 'ok'}>{safeAlarms.length > 0 ? safeAlarms.join(', ') : 'Aucune alarme'}</strong>
+                </article>
+              </div>
+            </section>
+          </GameModal>
+        )}
+
+        {activeWorkshopPopup === 'tools' && (
+          <GameModal
+            title="Panneau outils"
+            subtitle="Mesures et reparations rapides"
+            onClose={() => setActiveWorkshopPopup(null)}
+            footer={<DsButton variant="secondary" onClick={() => setActiveWorkshopPopup(null)}>Fermer</DsButton>}
+          >
+            <ToolPanel installation={definition} selectedTool={selectedTool} runtime={runtime} />
+          </GameModal>
+        )}
       </section>
     </main>
   )

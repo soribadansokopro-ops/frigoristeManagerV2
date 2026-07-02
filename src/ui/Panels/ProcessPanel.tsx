@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { InstallationRuntime } from '../../types/game'
+import { DsButton } from '../../design-system'
 
 type ProcessTab = 'THERMO' | 'AIR' | 'COND' | 'SYSTEM'
 
@@ -54,14 +55,9 @@ export function ProcessPanel({ runtime }: ProcessPanelProps) {
 
       <nav className="process-tabs" aria-label="Sections process">
         {(Object.keys(tabLabel) as ProcessTab[]).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveTab(tab)}
-            className={activeTab === tab ? 'active' : ''}
-          >
+          <DsButton key={tab} variant={activeTab === tab ? 'primary' : 'ghost'} onClick={() => setActiveTab(tab)}>
             {tabLabel[tab]}
-          </button>
+          </DsButton>
         ))}
       </nav>
 

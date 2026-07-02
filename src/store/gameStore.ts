@@ -21,13 +21,30 @@ interface PlayerPosition {
   y: number
 }
 
+interface MissionSessionStats {
+  level: number
+  elapsedSeconds: number
+  measurements: number
+  repairs: number
+  requiredRepairs: number
+  score: number
+  stars: 0 | 1 | 2 | 3
+  rewardXp: number
+  rewardCredits: number
+  completed: boolean
+}
+
 interface GameStore {
   installations: InstallationDefinition[]
   isLoaded: boolean
   unlockedLevel: number
+  totalXp: number
+  totalCredits: number
+  bestScoreByLevel: Record<number, number>
   selectedLevel: number | null
   currentInstallationId: string | null
   runtime: InstallationRuntime | null
+  missionStats: MissionSessionStats | null
   selectedTool: ToolType
   missionStep: MissionStep
   playerPosition: PlayerPosition
@@ -40,6 +57,8 @@ interface GameStore {
   toggleComponentRun: (componentId: string) => void
   setRegulatorFanForcedOff: (forcedOff: boolean) => void
   setRegulatorDefrostActive: (active: boolean) => void
+  setRegulatorSetpoint: (delta: number) => void
+  acknowledgeAlarms: () => void
   setElectricalProbe: (probe: 'A' | 'B', pointId: string) => void
   triggerElectricalMeasurement: () => void
   activateFault: (faultId: string) => void
@@ -53,15 +72,38 @@ interface GameStore {
 const getCurrentDefinition = (state: GameStore) =>
   state.installations.find((item) => item.id === state.currentInstallationId)
 
+const computeStability = (definition: InstallationDefinition, runtime: InstallationRuntime) => {
+  const boxTempMargin = definition.base.boxTemp + 1.5
+  return runtime.thermo.boxTemp <= boxTempMargin
+}
+
+const computeMissionRewards = (level: number, stats: MissionSessionStats) => {
+  const timeBonus = Math.max(0, 240 - stats.elapsedSeconds) * 2
+  const repairBonus = stats.repairs * 120
+  const efficiencyPenalty = Math.max(0, stats.measurements - 8) * 10
+  const baseScore = 620 + level * 150
+  const score = Math.max(320, Math.round(baseScore + timeBonus + repairBonus - efficiencyPenalty))
+
+  const stars: 1 | 2 | 3 = score >= 1200 ? 3 : score >= 860 ? 2 : 1
+  const rewardXp = 70 + level * 30 + stars * 35
+  const rewardCredits = 130 + level * 60 + stars * 55
+
+  return { score, stars, rewardXp, rewardCredits }
+}
+
 export const useGameStore = create<GameStore>()(
   persist(
     (set, get) => ({
       installations: [],
       isLoaded: false,
       unlockedLevel: 1,
+      totalXp: 0,
+      totalCredits: 0,
+      bestScoreByLevel: {},
       selectedLevel: null,
       currentInstallationId: null,
       runtime: null,
+      missionStats: null,
       selectedTool: 'MANIFOLD',
       missionStep: 'ARRIVEE_SITE',
       playerPosition: { x: 180, y: 260 },
@@ -91,11 +133,32 @@ export const useGameStore = create<GameStore>()(
           return
         }
 
+        const runtime = createRuntime(definition)
+        const defaultFaultId = definition.faults[0]?.id
+        if (defaultFaultId) {
+          const faultIndex = Math.floor(Math.random() * definition.faults.length)
+          runtime.activeFaultIds = [definition.faults[faultIndex].id]
+        }
+
+        const requiredRepairs = runtime.activeFaultIds.length > 0 ? runtime.activeFaultIds.length : 1
+
         set({
           selectedLevel: level,
           currentInstallationId: definition.id,
-          runtime: createRuntime(definition),
-          missionStep: 'ARRIVEE_SITE',
+          runtime,
+          missionStats: {
+            level,
+            elapsedSeconds: 0,
+            measurements: 0,
+            repairs: 0,
+            requiredRepairs,
+            score: 0,
+            stars: 0,
+            rewardXp: 0,
+            rewardCredits: 0,
+            completed: false,
+          },
+          missionStep: defaultFaultId ? 'LOCALISATION_PANNE' : 'ARRIVEE_SITE',
           playerPosition: { x: 160, y: 260 },
         })
       },
@@ -113,6 +176,12 @@ export const useGameStore = create<GameStore>()(
 
         set({
           runtime: simulateTick(definition, state.runtime, dtSeconds),
+          missionStats: state.missionStats
+            ? {
+                ...state.missionStats,
+                elapsedSeconds: state.missionStats.elapsedSeconds + dtSeconds,
+              }
+            : null,
         })
       },
 
@@ -207,6 +276,39 @@ export const useGameStore = create<GameStore>()(
         })
       },
 
+      setRegulatorSetpoint: (delta) => {
+        const state = get()
+        if (!state.runtime) {
+          return
+        }
+
+        const nextSetpoint = Math.min(12, Math.max(-35, state.runtime.regulator.setpoint + delta))
+
+        set({
+          runtime: {
+            ...state.runtime,
+            regulator: {
+              ...state.runtime.regulator,
+              setpoint: nextSetpoint,
+            },
+          },
+        })
+      },
+
+      acknowledgeAlarms: () => {
+        const state = get()
+        if (!state.runtime) {
+          return
+        }
+
+        set({
+          runtime: {
+            ...state.runtime,
+            alarms: [],
+          },
+        })
+      },
+
       setElectricalProbe: (probe, pointId) => {
         const state = get()
         if (!state.runtime) {
@@ -252,6 +354,12 @@ export const useGameStore = create<GameStore>()(
         set({
           selectedTool: 'MULTIMETER',
           missionStep: 'MESURES',
+          missionStats: state.missionStats
+            ? {
+                ...state.missionStats,
+                measurements: state.missionStats.measurements + 1,
+              }
+            : null,
           runtime: {
             ...state.runtime,
             lastReading,
@@ -294,6 +402,20 @@ export const useGameStore = create<GameStore>()(
 
         set({
           runtime,
+          missionStats: state.selectedLevel
+            ? {
+                level: state.selectedLevel,
+                elapsedSeconds: 0,
+                measurements: 0,
+                repairs: 0,
+                requiredRepairs: validFaultIds.length > 0 ? validFaultIds.length : 1,
+                score: 0,
+                stars: 0,
+                rewardXp: 0,
+                rewardCredits: 0,
+                completed: false,
+              }
+            : null,
           missionStep: validFaultIds.length > 0 ? 'LOCALISATION_PANNE' : 'ARRIVEE_SITE',
         })
       },
@@ -328,13 +450,21 @@ export const useGameStore = create<GameStore>()(
           }
         }
 
+        const nextActiveFaultIds = state.runtime.activeFaultIds.filter((id) => id !== faultId)
+
         set({
           runtime: {
             ...state.runtime,
             components: nextComponents,
-            activeFaultIds: state.runtime.activeFaultIds.filter((id) => id !== faultId),
+            activeFaultIds: nextActiveFaultIds,
           },
-          missionStep: 'REPARATION',
+          missionStats: state.missionStats
+            ? {
+                ...state.missionStats,
+                repairs: state.missionStats.repairs + 1,
+              }
+            : null,
+          missionStep: nextActiveFaultIds.length > 0 ? 'REPARATION' : 'TEST_FINAL',
         })
       },
 
@@ -351,6 +481,12 @@ export const useGameStore = create<GameStore>()(
 
         const lastReading = createToolReading(state.selectedTool, definition, state.runtime)
         set({
+          missionStats: state.missionStats
+            ? {
+                ...state.missionStats,
+                measurements: state.missionStats.measurements + 1,
+              }
+            : null,
           runtime: {
             ...state.runtime,
             lastReading,
@@ -366,18 +502,57 @@ export const useGameStore = create<GameStore>()(
           return
         }
 
-        const noFault = state.runtime.activeFaultIds.length === 0
-        const stableTemp = state.runtime.thermo.boxTemp <= definition.base.boxTemp + 1.5
+        if (state.missionStats?.completed || state.missionStep === 'VALIDATION') {
+          return
+        }
 
-        if (!noFault || !stableTemp) {
+        const noFault = state.runtime.activeFaultIds.length === 0
+        const stableTemp = computeStability(definition, state.runtime)
+
+        if (!noFault) {
           set({ missionStep: 'DIAGNOSTIC' })
           return
         }
 
+        if (!stableTemp) {
+          set({ missionStep: 'TEST_FINAL' })
+          return
+        }
+
+        const currentStats = state.missionStats ?? {
+          level: state.selectedLevel,
+          elapsedSeconds: 0,
+          measurements: 0,
+          repairs: 0,
+          requiredRepairs: 1,
+          score: 0,
+          stars: 0 as 0,
+          rewardXp: 0,
+          rewardCredits: 0,
+          completed: false,
+        }
+
+        const rewards = computeMissionRewards(state.selectedLevel, currentStats)
         const nextUnlock = Math.max(state.unlockedLevel, state.selectedLevel + 1)
+        const bestForLevel = Math.max(state.bestScoreByLevel[state.selectedLevel] ?? 0, rewards.score)
+
         set({
           missionStep: 'VALIDATION',
           unlockedLevel: Math.min(6, nextUnlock),
+          totalXp: state.totalXp + rewards.rewardXp,
+          totalCredits: state.totalCredits + rewards.rewardCredits,
+          bestScoreByLevel: {
+            ...state.bestScoreByLevel,
+            [state.selectedLevel]: bestForLevel,
+          },
+          missionStats: {
+            ...currentStats,
+            score: rewards.score,
+            stars: rewards.stars,
+            rewardXp: rewards.rewardXp,
+            rewardCredits: rewards.rewardCredits,
+            completed: true,
+          },
         })
       },
     }),
@@ -385,6 +560,9 @@ export const useGameStore = create<GameStore>()(
       name: 'frigoriste-manager-save',
       partialize: (state) => ({
         unlockedLevel: state.unlockedLevel,
+        totalXp: state.totalXp,
+        totalCredits: state.totalCredits,
+        bestScoreByLevel: state.bestScoreByLevel,
       }),
     },
   ),

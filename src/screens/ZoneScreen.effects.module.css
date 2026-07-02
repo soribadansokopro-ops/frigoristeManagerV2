@@ -1,0 +1,116 @@
+.meubleSceneOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sceneChip {
+  position: absolute;
+  border: 1px solid #2f79b6;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #d6edff;
+  background: rgba(7, 29, 52, 0.86);
+  box-shadow: 0 6px 16px rgba(2, 8, 15, 0.28);
+}
+
+.chipOk {
+  border-color: #2f9362;
+  color: #a9f5ce;
+}
+
+.chipWarn {
+  border-color: #a77b30;
+  color: #ffe0ad;
+}
+
+.posTopLeft {
+  top: 12px;
+  left: 12px;
+}
+
+.posTopRight {
+  top: 12px;
+  right: 12px;
+}
+
+.posBottomLeft {
+  bottom: 12px;
+  left: 12px;
+}
+
+.posBottomRight {
+  bottom: 12px;
+  right: 12px;
+}
+
+.statusCard {
+  border: 1px solid #2b5f91;
+  border-radius: 8px;
+  padding: 10px;
+  background: linear-gradient(180deg, rgba(9, 33, 60, 0.9), rgba(7, 24, 45, 0.88));
+  display: grid;
+  gap: 8px;
+}
+
+.statusCardSmall {
+  color: #8ba7c2;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statusCardStrong {
+  color: #e8f3ff;
+  font-family: 'Rajdhani', 'Barlow Condensed', sans-serif;
+  font-size: 23px;
+  line-height: 1;
+}
+
+.statusCardText {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 13px;
+}
+
+.statusCardButton {
+  justify-self: start;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #2a73aa;
+  background: linear-gradient(180deg, #175893, #0f3f6e 56%, #0b2f54);
+  color: #d9f2ff;
+  cursor: pointer;
+}
+
+.statusOk {
+  border-color: #2f9362;
+}
+
+.statusWarn {
+  border-color: #a77b30;
+}
+
+.statusCritical {
+  border-color: #b7483f;
+}
+
+.popupContent {
+  display: grid;
+  gap: 10px;
+}
+
+.popupContent p {
+  margin: 0;
+  color: #b8d4eb;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.popupList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  color: #ffd6d1;
+}
